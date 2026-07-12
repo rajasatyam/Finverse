@@ -1,6 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Trash2, MessageCircle, DollarSign, TrendingUp, PieChart, Calculator, Settings, ChevronDown, Menu, ChevronLeft, ChevronRight, X, Wallet, Target, BarChart3, CreditCard, User, Home, History, LogOut } from 'lucide-react';
-import './FinChatbot.css';
+import {
+  Send,
+  Trash2,
+  DollarSign,
+  TrendingUp,
+  ChevronDown,
+  Menu,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Wallet,
+  Target,
+  BarChart3,
+  CreditCard,
+  User,
+  Home,
+  History,
+  LogOut,
+  Bot
+} from 'lucide-react';
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useNavigate } from "react-router-dom";
@@ -8,7 +26,7 @@ import { doc, updateDoc, arrayUnion, addDoc, collection, serverTimestamp } from 
 import { db, auth } from "../firebase.js";
 import { fetchChatHistory } from '../FetchChatHistory.js';
 import { onAuthStateChanged } from "firebase/auth";
-
+import Beams from '../components/Beams';
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
 
@@ -26,7 +44,6 @@ const FinancialChatbot = () => {
   const [advisoryMode, setAdvisoryMode] = useState('general');
   const [error, setError] = useState(null);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
@@ -38,54 +55,42 @@ const FinancialChatbot = () => {
   const inputRef = useRef(null);
   const navigate = useNavigate();
 
-
   useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, async(currentUser) => {
-    if (currentUser) {
-      // User is signed in
-      
-      const data = await fetchChatHistory(currentUser.uid);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        const data = await fetchChatHistory(currentUser.uid);
         setChatHistory(data);
-      setUserName(currentUser.displayName); // save name
-       // pass uid here
-    } else {
-      // No user signed in, maybe redirect to login
-      console.log("No user signed in");
-    }
-  });
+        setUserName(currentUser.displayName);
+      } else {
+        console.log("No user signed in");
+      }
+    });
 
-  return () => unsubscribe();
-}, []);
+    return () => unsubscribe();
+  }, []);
 
   const createChatHistory = async (uid) => {
-  try {
-    const docRef = await addDoc(collection(db, "chatHistory"), {
-      userId: uid,
-      createdAt: serverTimestamp(),
-      messages: []
-    });
-    const chatDocRef = doc(db, "chatHistory", docRef.id);
-    await updateDoc(chatDocRef, {
-      messages: arrayUnion(
-        {
-      id: 1,
-      type: 'bot',
-      content: "Welcome to your Personal Financial Assistant! I'm here to help you navigate investments, budgeting, SIPs, debt management, and wealth building strategies. Let's secure your financial future together.",
-      timestamp: new Date(),
+    try {
+      const docRef = await addDoc(collection(db, "chatHistory"), {
+        userId: uid,
+        createdAt: serverTimestamp(),
+        messages: []
+      });
+      const chatDocRef = doc(db, "chatHistory", docRef.id);
+      await updateDoc(chatDocRef, {
+        messages: arrayUnion({
+          id: 1,
+          type: 'bot',
+          content: "Welcome to your Personal Financial Assistant! I'm here to help you navigate investments, budgeting, SIPs, debt management, and wealth building strategies. Let's secure your financial future together.",
+          timestamp: new Date(),
+        })
+      });
+      setChatHistoryId(docRef.id);
+      return docRef.id;
+    } catch (error) {
+      console.error("Error creating chat history:", error);
     }
-      ) // adds message to the array
-    });
-    setChatHistoryId(docRef.id);
-    return docRef.id;
-    console.log("Chat history created with ID:", docRef.id);
-  } catch (error) {
-    console.error("Error creating chat history:", error);
-  }
-};
-
-
-
-
+  };
 
   useEffect(() => {
     const checkMobile = () => {
@@ -94,7 +99,7 @@ const FinancialChatbot = () => {
         setSidebarCollapsed(true);
       }
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -125,14 +130,14 @@ const FinancialChatbot = () => {
       mode: advisoryMode
     };
     let id;
-    if(!chatHistoryId){
-     id= await createChatHistory(auth.currentUser.uid);
+    if (!chatHistoryId) {
+      id = await createChatHistory(auth.currentUser.uid);
     }
-    
-    const chatDocRef = doc(db, "chatHistory", chatHistoryId?chatHistoryId:id);
+
+    const chatDocRef = doc(db, "chatHistory", chatHistoryId ? chatHistoryId : id);
 
     await updateDoc(chatDocRef, {
-      messages: arrayUnion(userMessage) // adds message to the array
+      messages: arrayUnion(userMessage)
     });
 
     setMessages(prev => [...prev, userMessage]);
@@ -143,18 +148,12 @@ const FinancialChatbot = () => {
     try {
       const response = await fetch(`${API_BASE}/api/chat`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: inputMessage,
-          context: 'financial_assistant',
-          mode: advisoryMode
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: inputMessage, context: 'financial_assistant', mode: advisoryMode }),
       });
 
       const data = await response.json();
-      
+
       const botMessage = {
         id: Date.now() + 1,
         type: 'bot',
@@ -163,11 +162,8 @@ const FinancialChatbot = () => {
         mode: advisoryMode
       };
 
-      const chatDocRef = doc(db, "chatHistory", chatHistoryId?chatHistoryId:id);
-
-    await updateDoc(chatDocRef, {
-      messages: arrayUnion(botMessage) // adds message to the array
-    });
+      const chatDocRef2 = doc(db, "chatHistory", chatHistoryId ? chatHistoryId : id);
+      await updateDoc(chatDocRef2, { messages: arrayUnion(botMessage) });
 
       setMessages(prev => [...prev, botMessage]);
     } catch (err) {
@@ -187,10 +183,10 @@ const FinancialChatbot = () => {
 
   const onSelectChat = (index) => {
     setMessages(chatHistory[index].messages);
-    setShowHistoryModal(false)
+    setShowHistoryModal(false);
     setChatHistoryId(chatHistory[index].id);
-    {isMobile && setSidebarCollapsed(true)}
-  }
+    if (isMobile) setSidebarCollapsed(true);
+  };
 
   const generateMockResponse = (message, mode) => {
     const responses = {
@@ -215,7 +211,7 @@ const FinancialChatbot = () => {
         "The debt avalanche method (paying highest interest rate debts first) is mathematically optimal for minimizing total interest paid."
       ]
     };
-    
+
     const modeResponses = responses[mode] || responses.general;
     return modeResponses[Math.floor(Math.random() * modeResponses.length)];
   };
@@ -241,117 +237,89 @@ const FinancialChatbot = () => {
 
   const getModeDescription = (mode) => {
     switch (mode) {
-      case 'investment':
-        return 'investment advisory and portfolio management';
-      case 'planning':
-        return 'comprehensive financial planning';
-      case 'debt':
-        return 'debt management and optimization';
-      default:
-        return 'comprehensive financial advisory';
+      case 'investment': return 'investment advisory and portfolio management';
+      case 'planning': return 'comprehensive financial planning';
+      case 'debt': return 'debt management and optimization';
+      default: return 'comprehensive financial advisory';
     }
   };
 
   const getModeIcon = (mode) => {
     switch (mode) {
-      case 'investment':
-        return <TrendingUp className="w-5 h-5" />;
-      case 'planning':
-        return <Target className="w-5 h-5" />;
-      case 'debt':
-        return <CreditCard className="w-5 h-5" />;
-      default:
-        return <DollarSign className="w-5 h-5" />;
+      case 'investment': return <TrendingUp className="w-4 h-4" />;
+      case 'planning': return <Target className="w-4 h-4" />;
+      case 'debt': return <CreditCard className="w-4 h-4" />;
+      default: return <DollarSign className="w-4 h-4" />;
     }
   };
 
   const formatTime = (timestamp) => {
-  let date;
-
-  if (timestamp?.seconds !== undefined) {
-    // Firestore Timestamp
-    date = new Date(timestamp.seconds * 1000);
-  } else {
-    // JavaScript Date object
-    date = new Date(timestamp);
-  }
-
-  return date.toLocaleTimeString('en-US', { 
-    hour: '2-digit', 
-    minute: '2-digit' 
-  });
-};
-
+    let date;
+    if (timestamp?.seconds !== undefined) {
+      date = new Date(timestamp.seconds * 1000);
+    } else {
+      date = new Date(timestamp);
+    }
+    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  };
 
   const quickActions = {
     general: [
       "Create a monthly budget plan",
       "Best mutual funds for 2024",
-      "How to start investing with ₹5000",
-      "Emergency fund calculation"
+      "How to start investing with ₹5000"
     ],
     investment: [
       "Top performing SIP funds",
       "Portfolio diversification strategy",
-      "Tax-saving investment options",
-      "Risk assessment for equity funds"
+      "Tax-saving investment options"
     ],
     planning: [
       "Retirement planning calculator",
       "Child education fund planning",
-      "Home loan vs rent analysis",
-      "Insurance coverage review"
+      "Home loan vs rent analysis"
     ],
     debt: [
       "Credit card debt elimination",
       "Personal loan consolidation",
-      "Home loan prepayment strategy",
-      "Debt-to-income ratio optimization"
+      "Home loan prepayment strategy"
     ]
   };
 
   const handleQuickAction = (action) => {
     setInputMessage(action);
-    if (isMobile) {
-      setSidebarCollapsed(true);
-    }
+    if (isMobile) setSidebarCollapsed(true);
   };
 
   const handleModeChange = (mode) => {
     setAdvisoryMode(mode);
-    if (isMobile) {
-      setSidebarCollapsed(true);
-    }
+    if (isMobile) setSidebarCollapsed(true);
   };
 
-  const handleProfileAction = (action) => {
+  const handleProfileAction = async (action) => {
     setShowProfile(false);
-    
+
     switch (action) {
-      case 'home':
-        navigate('/features');
-        break;
-      case 'history':
-        setShowHistoryModal(true);
-        break;
+      case 'home': navigate('/features'); break;
+      case 'history': setShowHistoryModal(true); break;
       case 'logout':
-        // Handle logout logic here
-        console.log('Logout clicked');
+        await auth.signOut();
+        navigate('/login');
         break;
     }
   };
 
   if (isMinimized) {
     return (
-      <div className="minimized">
+      <div className="fixed bottom-5 right-5 z-[1000]">
         <button
-          className="minimized-button"
           onClick={() => setIsMinimized(false)}
+          className="flex items-center gap-3 px-5 py-4 bg-gradient-to-br from-violet-600 to-violet-400 border-none rounded-[25px] text-white cursor-pointer font-sans shadow-[0_8px_30px_rgba(139,69,255,0.3)] transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-[0_12px_40px_rgba(139,69,255,0.4)]"
         >
           <Wallet className="w-6 h-6" />
-          <div className="minimized-text">
-            <div className="minimized-title">Financial Assistant</div>
-            <div className="minimized-subtitle">Click to expand</div>
+          <div className="flex flex-col items-start text-left">
+            <div className="font-semibold text-sm">Financial Assistant</div>
+            <div className="text-[11px] opacity-80">Click to expand</div>
           </div>
         </button>
       </div>
@@ -359,329 +327,362 @@ const FinancialChatbot = () => {
   }
 
   return (
-    <div className="financial-chatbot-container">
+    <div className="flex h-screen bg-[#07070c] font-sans text-white overflow-hidden relative">
+      <style>{`
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
+      
+      {/* Background Beams — fixed, subtle */}
+      <div className="absolute inset-0 z-0 opacity-15 pointer-events-none overflow-hidden">
+        <Beams
+          beamWidth={3.2}
+          beamHeight={30}
+          beamNumber={20}
+          lightColor="#a78bfa"
+          speed={2.4}
+          noiseIntensity={2.6}
+          scale={0.18}
+          rotation={16}
+        />
+      </div>
+
       {/* Sidebar */}
-      <div className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
-        <div className="sidebar-header">
-          <div className="sidebar-title">
-            {!sidebarCollapsed &&<BarChart3 size={10} className="sidebar-icon" />}
-            {!sidebarCollapsed && <span>Financial Tools</span>}
+      <div
+        className={`flex flex-col bg-black/60 border-r border-white/[0.08] backdrop-blur-3xl transition-all duration-300 z-30 ${
+          isMobile ? `absolute top-0 left-0 h-full ${sidebarCollapsed ? '-translate-x-full' : 'translate-x-0'} w-[280px]` : sidebarCollapsed ? 'w-20' : 'w-80'
+        }`}
+      >
+        {/* Sidebar Header */}
+        <div className="flex items-center justify-between px-5 py-5 min-h-[68px] border-b border-white/[0.08]">
+          <div className="flex items-center gap-3 text-violet-400 font-semibold text-base whitespace-nowrap overflow-hidden">
+            {!sidebarCollapsed && <Bot size={18} className="flex-shrink-0 text-violet-400" />}
+            {!sidebarCollapsed && <span className="font-bold tracking-wide">AI Money Mentor</span>}
           </div>
-          <button 
-            className="sidebar-toggle"
+          <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="bg-white/[0.03] border border-white/10 hover:border-violet-500/30 rounded-xl p-2 text-violet-400 cursor-pointer transition-all duration-200 flex-shrink-0 hover:bg-violet-500/10 hover:scale-105"
           >
-            {sidebarCollapsed ? <ChevronRight className="toggle-icon" /> : <ChevronLeft className="toggle-icon" />}
+            {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           </button>
         </div>
 
         {!sidebarCollapsed && (
-          <div className="sidebar-content">
-            {/* Advisory Modes */}
-            <div className="sidebar-section">
-              <h3 className="section-title">Advisory Mode</h3>
-              <div className="mode-buttons">
-                {[
-                  { key: 'general', label: 'General Finance', icon: <DollarSign className="mode-icon" /> },
-                  { key: 'investment', label: 'Investment Advisory', icon: <TrendingUp className="mode-icon" /> },
-                  { key: 'planning', label: 'Financial Planning', icon: <Target className="mode-icon" /> },
-                  { key: 'debt', label: 'Debt Management', icon: <CreditCard className="mode-icon" /> }
-                ].map((mode) => (
-                  <button
-                    key={mode.key}
-                    className={`mode-btn ${advisoryMode === mode.key ? 'active' : ''}`}
-                    onClick={() => handleModeChange(mode.key)}
-                  >
-                    {mode.icon}
-                    <span>{mode.label}</span>
-                  </button>
-                ))}
+          <div className="flex-1 overflow-y-auto no-scrollbar p-4 flex flex-col justify-between">
+            
+            <div className="space-y-5">
+              {/* Advisory Mode Selection */}
+              <div>
+                <h3 className="text-gray-500 text-[10px] font-bold mb-3 uppercase tracking-widest">Advisory Mode</h3>
+                <div className="flex flex-col gap-1.5">
+                  {[
+                    { key: 'general', label: 'General Finance', icon: <DollarSign className="w-4 h-4" /> },
+                    { key: 'investment', label: 'Investment Advisory', icon: <TrendingUp className="w-4 h-4" /> },
+                    { key: 'planning', label: 'Financial Planning', icon: <Target className="w-4 h-4" /> },
+                    { key: 'debt', label: 'Debt Management', icon: <CreditCard className="w-4 h-4" /> }
+                  ].map((mode) => (
+                    <button
+                      key={mode.key}
+                      onClick={() => handleModeChange(mode.key)}
+                      className={`relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs cursor-pointer transition-all duration-300 border ${
+                        advisoryMode === mode.key
+                          ? 'bg-violet-500/10 border-violet-500/30 text-violet-400 shadow-[0_0_20px_rgba(139,92,246,0.1)]'
+                          : 'bg-white/[0.02] border-white/[0.04] text-gray-400 hover:bg-violet-500/5 hover:border-violet-500/20 hover:text-violet-400'
+                      }`}
+                    >
+                      {mode.icon}
+                      <span className="font-medium">{mode.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quick Suggestions list */}
+              <div>
+                <h3 className="text-gray-500 text-[10px] font-bold mb-3 uppercase tracking-widest">Quick Actions</h3>
+                <div className="flex flex-col gap-1.5">
+                  {quickActions[advisoryMode].map((action, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleQuickAction(action)}
+                      className="px-3 py-2 bg-white/[0.02] border border-white/[0.06] rounded-xl text-gray-400 text-xs cursor-pointer transition-all duration-200 text-left hover:bg-violet-500/5 hover:border-violet-500/20 hover:text-violet-400 hover:translate-x-1"
+                    >
+                      {action}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Quick Actions */}
-            <div className="sidebar-section">
-              <h3 className="section-title">Quick Actions</h3>
-              <div className="quick-buttons">
-                {quickActions[advisoryMode].map((action, index) => (
-                  <button
-                    key={index}
-                    className="quick-btn"
-                    onClick={() => handleQuickAction(action)}
-                  >
-                    {action}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Profile Section */}
-            <div className="sidebar-section profile-section">
-              <div className="profile-container">
-                <button 
-                  className="profile-trigger"
+            {/* Profile deck at the bottom */}
+            <div className="mt-8 pt-5 border-t border-white/[0.08]">
+              <div className="relative">
+                <button
                   onClick={() => setShowProfile(!showProfile)}
+                  className="w-full flex items-center justify-between p-3 bg-white/[0.02] border border-white/[0.08] hover:border-violet-500/20 rounded-2xl cursor-pointer transition-all duration-200 hover:bg-white/[0.04]"
                 >
-                  <div className="profile-info">
-                    <div className="profile-avatar">
-                      <User className="profile-icon" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs uppercase shadow-[0_4px_12px_rgba(139,92,246,0.2)]">
+                      {userName ? userName.charAt(0) : <User className="w-4 h-4" />}
                     </div>
-                    <div className="profile-text">
-                      <div className="profile-name">{userName}</div>
+                    <div className="flex flex-col items-start">
+                      <div className="text-gray-200 font-semibold text-xs sm:text-sm truncate max-w-[120px]">{userName || 'User'}</div>
                     </div>
                   </div>
-                  <ChevronDown className={`profile-arrow ${showProfile ? 'rotated' : ''}`} />
+                  <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${showProfile ? 'rotate-180' : ''}`} />
                 </button>
-                
+
                 {showProfile && (
-                  <div className="profile-dropdown">
-                    <button 
-                      className="profile-menu-item"
-                      onClick={() => handleProfileAction('home')}
-                    >
-                      <Home className="menu-icon" />
-                      <span>Home</span>
+                  <div className="absolute bottom-full left-0 right-0 mb-2 bg-[#101018]/95 border border-white/[0.08] rounded-2xl backdrop-blur-3xl shadow-[0_15px_40px_rgba(0,0,0,0.6)] z-40 overflow-hidden">
+                    <button onClick={() => handleProfileAction('home')} className="flex items-center gap-3 w-full px-4 py-3 bg-transparent border-none text-gray-300 text-xs sm:text-sm cursor-pointer transition-all duration-200 text-left hover:bg-violet-500/10 hover:text-violet-400">
+                      <Home className="w-4 h-4" />
+                      <span>Back to Features</span>
                     </button>
-                    <button 
-                      className="profile-menu-item"
-                      onClick={() => handleProfileAction('history')}
-                    >
-                      <History className="menu-icon" />
+                    <button onClick={() => handleProfileAction('history')} className="flex items-center gap-3 w-full px-4 py-3 bg-transparent border-none text-gray-300 text-xs sm:text-sm cursor-pointer transition-all duration-200 text-left hover:bg-violet-500/10 hover:text-violet-400">
+                      <History className="w-4 h-4" />
                       <span>Chat History</span>
                     </button>
-                    <button 
-                      className="profile-menu-item logout"
-                      onClick={() => handleProfileAction('logout')}
-                    >
-                      <LogOut className="menu-icon" />
+                    <button onClick={() => handleProfileAction('logout')} className="flex items-center gap-3 w-full px-4 py-3 bg-transparent border-none border-t border-white/[0.08] text-red-400 text-xs sm:text-sm cursor-pointer transition-all duration-200 text-left hover:bg-red-500/10 hover:text-red-300">
+                      <LogOut className="w-4 h-4" />
                       <span>Logout</span>
                     </button>
                   </div>
                 )}
               </div>
             </div>
+
           </div>
         )}
       </div>
 
-      {/* Main Content */}
-      <div className="main-content">
-        {/* Header */}
-        <div className="headerc">
-          <div className="header-left">
-            
-            <div className="title-section">
-              <div className="title-row">
-                {isMobile ? (
-              <button 
-                className="mobile-menu-btn"
+      {/* Main Chat Workspace */}
+      <div className="flex-1 flex flex-col bg-transparent w-full min-w-0 z-10">
+        
+        {/* Workspace App Header */}
+        <div className="flex justify-between items-center px-4 sm:px-6 py-4 border-b border-white/[0.08] bg-black/40 backdrop-blur-md z-20 min-h-[68px]">
+          <div className="flex items-center gap-3">
+            {isMobile && (
+              <button
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="bg-white/[0.03] border border-white/10 rounded-xl p-2 text-violet-400 cursor-pointer"
               >
-                <Menu className="mobile-menu-icon" />
+                <Menu className="w-5 h-5" />
               </button>
-            ):<Wallet className="title-icon" />}
-                
-                <h1 className="title"><span className="logo-fin">Fin</span>
-                        <span className="logo-ed">Ed</span> AI</h1>
-
-                {!isMobile && (
-                  <div className="status-indicator">
-              <div className="status-dot"></div>
-              <span className="status-text">Live Markets</span>
-            </div>
-                )}
-              </div>
-              <span className="subtitle">Your Personal Financial Intelligence Platform</span>
-            </div>
+            )}
             
-          </div>
-          <div className="header-actions">
-            
-            <button 
-              className="action-btn" 
-              onClick={clearChat} 
-              title="New Session"
+            {/* Back to Features link option */}
+            <button
+              onClick={() => navigate('/features')}
+              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-violet-400 transition-colors mr-2 cursor-pointer group bg-white/[0.03] border border-white/10 rounded-xl px-3 py-1.5"
             >
-              <Trash2 className="action-icon" />
+              <ChevronLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
+              <span>Back</span>
+            </button>
+
+            <div className="flex items-center gap-2">
+              <Bot className="w-5 h-5 text-violet-400" />
+              <h1 className="text-white text-base sm:text-lg font-bold">
+                FinEd <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">AI Mentor</span>
+              </h1>
+            </div>
+          </div>
+
+          <div className="flex gap-2.5">
+            <button
+              onClick={clearChat}
+              title="Reset Chat Session"
+              className="bg-white/[0.02] border border-white/[0.08] hover:border-violet-500/20 rounded-xl p-2.5 text-gray-400 hover:text-violet-400 cursor-pointer transition-all duration-200"
+            >
+              <Trash2 className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        
+        {/* Conversation Feeds Panel */}
+        <div className="flex-1 flex flex-col overflow-hidden relative">
+          
+          {messages.length <= 1 ? (
+            /* Sleek ChatGPT/Gemini Welcome Portal */
+            <div className="flex-1 flex flex-col justify-center items-center px-4 max-w-2xl mx-auto text-center z-10 relative">
+              <div className="w-14 h-14 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 mb-6 shadow-[0_0_25px_rgba(139,92,246,0.15)]">
+                <Bot className="w-7 h-7 text-violet-400" />
+              </div>
+              <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+                Hello, <span className="bg-gradient-to-r from-violet-400 via-purple-300 to-indigo-400 bg-clip-text text-transparent">{userName || 'Learner'}</span>
+              </h2>
+              <p className="text-gray-400 text-xs sm:text-sm mt-3 leading-relaxed">
+                I'm your FinEd AI Money Mentor. Ask me any question about budgeting, investing, SIPs, credit cards, or wealth planning to get started.
+              </p>
 
-        {/* Messages Area */}
-        <div className="messages-container">
-          <div className="messages-list">
-            {messages.map((message) => (
-              <div key={message.id} className="message-wrapper">
-                <div className={`message ${message.type === 'user' ? 'user' : ''}`}>
-                  <div className="message-content">
-                    <div className={`avatar ${message.type === 'user' ? 'user' : ''}`}>
-                      {message.type === 'bot' && <Wallet className="avatar-icon" />}
-                      {message.type === 'user' && <div className="user-avatar">You</div>}
-                    </div>
-                    <div className="message-body">
-                      <div className="message-text">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
-                      </div>
-                      <div className="message-meta">
-                        <span className="message-time">
-                          {formatTime(message.timestamp)}
-                        </span>
-                        {message.mode && (
-                          <span className="message-mode">
-                            {getModeIcon(message.mode)}
-                            <span>{message.mode}</span>
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              {/* Suggestions Deck */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 w-full mt-10">
+                {quickActions[advisoryMode].map((action, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleQuickAction(action)}
+                    className="p-4 bg-white/[0.02] border border-white/[0.06] hover:bg-violet-500/5 hover:border-violet-500/20 hover:text-violet-400 rounded-2xl text-left text-gray-300 cursor-pointer transition-all duration-300 hover:-translate-y-0.5"
+                  >
+                    <p className="font-bold text-white text-xs mb-1">Suggest Prompt</p>
+                    <p className="text-gray-400 text-[11px] line-clamp-1 leading-snug">{action}</p>
+                  </button>
+                ))}
               </div>
-            ))}
-            
-            {/* Typing Indicator */}
-            {isTyping && (
-              <div className="message-wrapper">
-                <div className="message">
-                  <div className="message-content">
-                    <div className="avatar">
-                      <Wallet className="avatar-icon" />
-                    </div>
-                    <div className="typing-body">
-                      <div className="typing-indicator">
-                        <div className="typing-dots">
-                          <span className="dot"></span>
-                          <span className="dot" style={{ animationDelay: '0.2s' }}></span>
-                          <span className="dot" style={{ animationDelay: '0.4s' }}></span>
+            </div>
+          ) : (
+            /* Active message feed */
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
+              <div className="max-w-3xl mx-auto w-full space-y-6">
+                
+                {messages.map((message) => (
+                  <div key={message.id} className="flex flex-col gap-2">
+                    <div className={`flex items-start gap-4 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      
+                      {/* Avatar */}
+                      {message.type === 'bot' && (
+                        <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 bg-violet-500/10 border border-violet-500/20 text-violet-400 shadow-[0_0_15px_rgba(139,92,246,0.15)]">
+                          <Bot className="w-4 h-4 text-violet-400" />
                         </div>
-                        <span className="typing-text">Analyzing your financial query...</span>
+                      )}
+
+                      <div className={`flex flex-col max-w-[85%] sm:max-w-[75%] gap-1.5 ${message.type === 'user' ? 'items-end' : 'items-start'}`}>
+                        {/* Bubble */}
+                        <div
+                          className={`px-5 py-3.5 rounded-[22px] text-xs sm:text-sm leading-relaxed break-words ${
+                            message.type === 'user'
+                              ? 'bg-violet-600/90 text-white border border-violet-500/30 rounded-br-sm shadow-[0_4px_15px_rgba(139,92,246,0.15)] font-medium text-left'
+                              : 'bg-white/[0.03] border border-white/[0.06] text-gray-200 rounded-bl-sm backdrop-blur-md text-left shadow-[0_4px_30px_rgba(0,0,0,0.15)]'
+                          }`}
+                        >
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
+                        </div>
+                        
+                        {/* Meta/Timestamp */}
+                        <div className={`flex items-center gap-3 text-[10px] text-gray-500 ${message.type === 'user' ? 'flex-row-reverse' : ''}`}>
+                          <span>{formatTime(message.timestamp)}</span>
+                        </div>
                       </div>
+
                     </div>
                   </div>
-                </div>
+                ))}
+
+                {isTyping && (
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 bg-violet-500/10 border border-violet-500/20 text-violet-400 shadow-[0_0_15px_rgba(139,92,246,0.15)]">
+                      <Bot className="w-4 h-4 text-violet-400" />
+                    </div>
+                    <div className="flex items-center gap-3 px-5 py-4 bg-white/[0.03] border border-white/[0.06] rounded-[22px] rounded-bl-sm backdrop-blur-md">
+                      <div className="flex gap-1 mr-2">
+                        <span className="w-2 h-2 rounded-full bg-violet-500 animate-bounce" />
+                        <span className="w-2 h-2 rounded-full bg-violet-500 animate-bounce [animation-delay:0.2s]" />
+                        <span className="w-2 h-2 rounded-full bg-violet-500 animate-bounce [animation-delay:0.4s]" />
+                      </div>
+                      <span className="text-gray-500 text-[11px] italic">Analyzing query...</span>
+                    </div>
+                  </div>
+                )}
+
+                <div ref={messagesEndRef} />
               </div>
-            )}
-            
-            <div ref={messagesEndRef} />
-          </div>
+            </div>
+          )}
+
         </div>
 
-        {/* Error Banner */}
         {error && (
-          <div className="error-banner">
-            <X className="error-icon" />
-            <span className="error-text">Service Issue: {error}</span>
-            <button className="error-dismiss" onClick={() => setError(null)}>
-              <X className="error-dismiss-icon" />
+          <div className="flex items-center gap-3 px-4 sm:px-6 py-3.5 bg-red-500/10 border-t border-b border-red-500/20 text-red-400 text-xs sm:text-sm">
+            <X className="w-4 h-4 flex-shrink-0" />
+            <span className="flex-1 font-medium">Service Issue: {error}</span>
+            <button onClick={() => setError(null)} className="bg-transparent border-none text-red-400 cursor-pointer p-1 rounded hover:bg-red-500/10">
+              <X className="w-4 h-4" />
             </button>
           </div>
         )}
 
-        {/* Input Area */}
-        <div className="cinput-container">
-          <div className="cinput-wrapper">
-            <div className="cinput-group">
-              <textarea
-                ref={inputRef}
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder={`Ask about ${getModeDescription(advisoryMode)}...`}
-                className="cmessage-input"
-                rows="1"
-                disabled={isTyping}
-              />
-              <button
-                onClick={sendMessage}
-                className={`send-btn ${(!inputMessage.trim() || isTyping) ? 'disabled' : ''}`}
-                disabled={!inputMessage.trim() || isTyping}
-              >
-                {isTyping ? (
-                  <div className="cloading-spinner"></div>
-                ) : (
-                  <Send className="send-icon" />
-                )}
-              </button>
+        {/* Input deck */}
+        <div className="px-4 sm:px-6 pb-6 pt-2 bg-transparent z-10">
+          <div className="max-w-3xl mx-auto w-full">
+            <div className="relative bg-white/[0.03] border border-white/[0.08] rounded-3xl p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] focus-within:border-violet-500/40 focus-within:shadow-[0_0_30px_rgba(139,92,246,0.12)] transition-all duration-300 backdrop-blur-md">
+              <div className="flex gap-3 items-end">
+                <textarea
+                  ref={inputRef}
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  placeholder={`Ask FinEd AI about ${getModeDescription(advisoryMode)}...`}
+                  rows="1"
+                  disabled={isTyping}
+                  className="flex-1 bg-transparent border-none text-white text-sm font-sans resize-none min-h-[40px] max-h-[160px] py-2 px-3 outline-none placeholder:text-gray-600 focus:ring-0"
+                />
+                <button
+                  onClick={sendMessage}
+                  disabled={!inputMessage.trim() || isTyping}
+                  className="bg-gradient-to-br from-violet-500 to-purple-600 border-none rounded-xl w-9 h-9 text-white cursor-pointer transition-all duration-300 flex items-center justify-center font-bold shadow-[0_4px_15px_rgba(139,92,246,0.3)] disabled:opacity-30 disabled:cursor-not-allowed hover:not-disabled:scale-105 hover:not-disabled:shadow-[0_8px_25px_rgba(139,92,246,0.45)] mb-0.5 mr-0.5 flex-shrink-0"
+                >
+                  {isTyping ? (
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <Send className="w-3.5 h-3.5 text-white" />
+                  )}
+                </button>
+              </div>
             </div>
-          </div>
-          <div className="cinput-hint">
-            <span>Press Enter to send • Shift+Enter for new line</span>
-            <span className="message-count">{messages.length - 1} messages</span>
+            
+            <div className="flex justify-between items-center px-4 mt-2.5 text-[10px] text-gray-500 font-mono">
+              <span>Press Enter to send • Shift+Enter for new line</span>
+              <span>{messages.length} messages</span>
+            </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="footer">
-          <div className="footer-content">
-            <span className="footer-text">
-              Powered by Advanced Financial AI
-            </span>
-            <div className="footer-badge">
-              {getModeIcon(advisoryMode)}
-              <span>{advisoryMode.charAt(0).toUpperCase() + advisoryMode.slice(1)} Mode</span>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Chat History Modal */}
       {showHistoryModal && (
-        <div className="modal-overlay">
-          <div className="history-modal">
-            <div className="history-header">
-              <h2 className="history-title">
-                <History className="history-icon" />
-                Chat History
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center z-[1000]">
+          <div className="w-[90%] max-w-md bg-[#0f0f18]/90 border border-white/[0.08] rounded-3xl backdrop-blur-3xl overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.8)] flex flex-col justify-between">
+            
+            <div className="flex justify-between items-center px-6 py-5 border-b border-white/[0.08]">
+              <h2 className="flex items-center gap-3 text-violet-400 text-sm sm:text-base font-bold m-0">
+                <History className="w-4.5 h-4.5 text-violet-400" />
+                Conversation History
               </h2>
-              <button 
-                className="history-close"
-                onClick={() => setShowHistoryModal(false)}
-              >
-                <X className="close-icon" />
+              <button onClick={() => setShowHistoryModal(false)} className="bg-white/[0.02] border border-white/10 rounded-xl p-2 text-gray-400 cursor-pointer transition-all duration-200 hover:bg-red-500/20 hover:border-red-500/30 hover:text-red-500">
+                <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="history-content">
-              <div className="history-placeholder">
-                {chatHistory.length!=0 ? (
-                   <div className="chat-history-list">
-      {chatHistory.map((chat,index) => {
-        // Take first message as title or fallback
-        
-
-        return (
-          <div
-  key={chat.id}
-  className="chat-history-item"
-  onClick={() => onSelectChat(index)}
->
-  <span className="chat-title">
-    {new Date(chat.createdAt.seconds * 1000).toLocaleDateString()} at{' '}
-    {new Date(chat.createdAt.seconds * 1000).toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    })}
-  </span>
-</div>
-        );
-      })}
-    </div>
-                ):(
-                  <div>
-                    <h3 className="placeholder-title">No Chat History Yet</h3>
-                <p className="placeholder-text">
-                  Your previous conversations will appear here. This feature will be enhanced in future updates to include:
-                </p>
-                <ul className="feature-list">
-                  <li>Search through conversation history</li>
-                  <li>Export chat sessions</li>
-                  <li>Bookmark important financial advice</li>
-                  <li>Category-wise conversation filtering</li>
-                </ul>
+            
+            <div className="p-6 max-h-[360px] overflow-y-auto no-scrollbar flex-1">
+              <div className="flex flex-col items-center gap-4">
+                {chatHistory && chatHistory.length !== 0 ? (
+                  <div className="flex flex-col gap-2.5 w-full">
+                    {chatHistory.map((chat, index) => (
+                      <div
+                        key={chat.id}
+                        onClick={() => onSelectChat(index)}
+                        className="flex justify-between items-center px-4.5 py-3.5 bg-white/[0.02] border border-white/[0.06] hover:border-violet-500/30 rounded-2xl cursor-pointer transition-all duration-300 w-full hover:bg-violet-500/5 hover:-translate-y-0.5"
+                      >
+                        <span className="text-gray-200 text-xs sm:text-sm font-medium flex-1 text-left">
+                          {new Date(chat.createdAt.seconds * 1000).toLocaleDateString()} at{' '}
+                          {new Date(chat.createdAt.seconds * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        <ChevronRight className="w-4 h-4 text-gray-500" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-8">
+                    <h3 className="text-gray-200 text-sm font-bold m-0 mb-2">No Chat Sessions Found</h3>
+                    <p className="text-gray-500 text-xs leading-relaxed max-w-xs mx-auto">
+                      Your previous conversations will appear here once you start chatting with FinEd AI.
+                    </p>
                   </div>
                 )}
-                
               </div>
             </div>
           </div>
@@ -690,11 +691,12 @@ const FinancialChatbot = () => {
 
       {/* Mobile Sidebar Overlay */}
       {isMobile && !sidebarCollapsed && (
-        <div 
-          className="sidebar-overlay"
+        <div
           onClick={() => setSidebarCollapsed(true)}
+          className="absolute inset-0 bg-black/60 z-20 backdrop-blur-sm"
         />
       )}
+      
     </div>
   );
 };

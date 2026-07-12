@@ -1,669 +1,79 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Clock,
+  Coins,
+  Info,
+  Landmark,
+  Lightbulb,
+  RotateCcw,
+  Undo2,
+  X,
+} from 'lucide-react';
 
-const styles = {
-  container: {
-    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    backgroundColor: '#0A0A0A',
-    backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(255, 215, 0, 0.03) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255, 215, 0, 0.02) 0%, transparent 50%)',
-    minHeight: '100vh',
-    padding: '20px',
-    transition: 'all 0.3s ease',
-  },
-  // Animated background particles
-  backgroundOverlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    background: 'radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.05) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255, 193, 7, 0.03) 0%, transparent 50%)',
-    zIndex: -1,
-    animation: 'pulse 4s ease-in-out infinite alternate',
-  },
-  maxWidth: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    position: 'relative',
-    zIndex: 1,
-  },
-  header: {
-    textAlign: 'center',
-    marginBottom: '30px',
-    transform: 'translateY(0)',
-    transition: 'transform 0.3s ease',
-  },
-  title: {
-    fontSize: '2.5rem',
-    fontWeight: '700',
-    color: '#FFD700',
-    marginBottom: '8px',
-    background: 'linear-gradient(135deg, #FFD700, #FFA500, #FF8C00)',
-    WebkitBackgroundClip: 'text',
-    backgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    textShadow: '0 0 30px rgba(255, 215, 0, 0.3)',
-    letterSpacing: '-0.02em',
-    position: 'relative',
-    display: 'inline-block',
-    cursor: 'default',
-    transition: 'all 0.4s ease',
-  },
-  titleHover: {
-    transform: 'scale(1.05)',
-    textShadow: '0 0 40px rgba(255, 215, 0, 0.6), 0 0 60px rgba(255, 215, 0, 0.3)',
-  },
-  subtitle: {
-    fontSize: '1.1rem',
-    color: '#B8860B',
-    fontWeight: '400',
-    letterSpacing: '0.5px',
-    transition: 'color 0.3s ease',
-  },
-  setupCard: {
-    backgroundColor: '#1A1A1A',
-    backgroundImage: 'linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, transparent 50%)',
-    borderRadius: '16px',
-    padding: '32px',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 215, 0, 0.1)',
-    border: '2px solid rgba(255, 215, 0, 0.2)',
-    transform: 'translateY(0) scale(1)',
-    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-    position: 'relative',
-    overflow: 'hidden',
-    width:'400px'
-  },
-  setupCardHover: {
-    transform: 'translateY(-8px) scale(1.02)',
-    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255, 215, 0, 0.3)',
-    borderColor: 'rgba(255, 215, 0, 0.4)',
-  },
-  setupTitle: {
-    fontSize: '1.5rem',
-    fontWeight: '600',
-    color: '#FFD700',
-    marginBottom: '24px',
-    textAlign: 'center',
-    transition: 'all 0.3s ease',
-  },
-  formSpace: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px',
-  },
-  label: {
-    display: 'block',
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    color: '#D4AF37',
-    marginBottom: '6px',
-    transition: 'color 0.3s ease',
-  },
-  inputContainer: {
-    position: 'relative',
-    display: 'flex',
-    alignItems: 'center',
-    transform: 'scale(1)',
-    transition: 'transform 0.2s ease',
-  },
-  inputContainerHover: {
-    transform: 'scale(1.02)',
-  },
-  input: {
-    width: '100%',
-    padding: '12px 16px',
-    fontSize: '1rem',
-    border: '2px solid rgba(255, 215, 0, 0.2)',
-    borderRadius: '8px',
-    transition: 'all 0.3s ease',
-    backgroundColor: '#2A2A2A',
-    color: '#FFD700',
-    outline: 'none',
-  },
-  inputFocus: {
-    borderColor: '#FFD700',
-    boxShadow: '0 0 0 4px rgba(255, 215, 0, 0.1), 0 0 20px rgba(255, 215, 0, 0.2)',
-    transform: 'scale(1.02)',
-  },
-  inputWithLeftIcon: {
-    paddingLeft: '36px',
-  },
-  inputWithRightIcon: {
-    paddingRight: '36px',
-  },
-  inputWithRightText: {
-    paddingRight: '60px',
-  },
-  currencySymbol: {
-    position: 'absolute',
-    left: '12px',
-    color: '#B8860B',
-    fontWeight: '500',
-    fontSize: '1rem',
-    pointerEvents: 'none',
-    transition: 'color 0.3s ease',
-  },
-  percentSymbol: {
-    position: 'absolute',
-    right: '12px',
-    color: '#B8860B',
-    fontWeight: '500',
-    fontSize: '1rem',
-    pointerEvents: 'none',
-    transition: 'color 0.3s ease',
-  },
-  monthsSymbol: {
-    position: 'absolute',
-    right: '12px',
-    color: '#8B7355',
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    pointerEvents: 'none',
-  },
-  startButton: {
-    width: '100%',
-    padding: '14px',
-    fontSize: '1rem',
-    fontWeight: '600',
-    color: '#0A0A0A',
-    backgroundColor: '#FFD700',
-    border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    marginTop: '10px',
-    position: 'relative',
-    overflow: 'hidden',
-    transform: 'scale(1)',
-  },
-  startButtonHover: {
-    transform: 'scale(1.02)',
-    backgroundColor: '#FFA500',
-    
-  },
-  dashboard: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
-    animation: 'fadeInUp 0.8s ease',
-  },
-  cardsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '16px',
-    className: 'cards-grid',
-  },
-  summaryCard: {
-    backgroundColor: '#1A1A1A',
-    backgroundImage: 'linear-gradient(135deg, rgba(255, 215, 0, 0.03) 0%, transparent 60%)',
-    padding: '20px',
-    borderRadius: '12px',
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 215, 0, 0.1)',
-    border: '1px solid rgba(255, 215, 0, 0.15)',
-    transform: 'translateY(0) scale(1)',
-    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-    position: 'relative',
-    overflow: 'hidden',
-    cursor: 'pointer',
-  },
-  summaryCardHover: {
-    transform: 'translateY(-6px) scale(1.03)',
-    boxShadow: '0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(255, 215, 0, 0.2)',
-    borderColor: 'rgba(255, 215, 0, 0.3)',
-  },
-  cardTitle: {
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    color: '#B8860B',
-    marginBottom: '8px',
-    textTransform: 'uppercase',
-    letterSpacing: '0.025em',
-    transition: 'color 0.3s ease',
-  },
-  cardValue: {
-    fontSize: '1.5rem',
-    fontWeight: '700',
-    margin: '0',
-    transition: 'all 0.3s ease',
-  },
-  blueValue: { 
-    color: '#74B9FF',
-    textShadow: '0 0 10px rgba(116, 185, 255, 0.3)',
-  },
-  redValue: { 
-    color: '#FF6B6B',
-    textShadow: '0 0 10px rgba(255, 107, 107, 0.3)',
-  },
-  greenValue: { 
-    color: '#4ECDC4',
-    textShadow: '0 0 10px rgba(78, 205, 196, 0.3)',
-  },
-  orangeValue: { 
-    color: '#FFB347',
-    textShadow: '0 0 10px rgba(255, 179, 71, 0.3)',
-  },
-  purpleValue: { 
-    color: '#A29BFE',
-    textShadow: '0 0 10px rgba(162, 155, 254, 0.3)',
-  },
-  smallText: {
-    fontSize: '0.75rem',
-    color: '#8B7355',
-    marginTop: '4px',
-    transition: 'color 0.3s ease',
-  },
-  timelineCard: {
-    backgroundColor: '#1A1A1A',
-    backgroundImage: 'linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 165, 0, 0.02) 100%)',
-    padding: '24px',
-    borderRadius: '12px',
-    boxShadow: '0 6px 25px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 215, 0, 0.1)',
-    border: '1px solid rgba(255, 215, 0, 0.15)',
-    transform: 'scale(1)',
-    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-    cursor: 'pointer',
-  },
-  timelineCardHover: {
-    transform: 'scale(1.02)',
-    boxShadow: '0 12px 35px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255, 215, 0, 0.2)',
-    borderColor: 'rgba(255, 215, 0, 0.3)',
-  },
-  timelineTitle: {
-    fontSize: '1.125rem',
-    fontWeight: '600',
-    color: '#FFD700',
-    marginBottom: '20px',
-    transition: 'all 0.3s ease',
-  },
-  timeline: {
-    display: 'flex',
-    overflowX: 'auto',
-    gap: '16px',
-    paddingBottom: '15px',
-  },
-  timelineItem: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    minWidth: '70px',
-    transform: 'scale(1)',
-    transition: 'transform 0.3s ease',
-  },
-  timelineItemHover: {
-    transform: 'scale(1.1)',
-  },
-  timelineCircle: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '50%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '0.8rem',
-    fontWeight: '700',
-    marginBottom: '8px',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    position: 'relative',
-  },
-  timelineCircleCompleted: {
-    background: 'linear-gradient(135deg, #FFD700, #FFA500)',
-    color: '#000000',
-    boxShadow: '0 4px 15px rgba(255, 215, 0, 0.3), 0 0 0 2px rgba(255, 215, 0, 0.1)',
-  },
-  timelineCircleDelayed: {
-    background: 'linear-gradient(135deg, #FFA500, #FF8C00)',
-    color: '#000000',
-    boxShadow: '0 4px 15px rgba(255, 165, 0, 0.3), 0 0 0 2px rgba(255, 165, 0, 0.1)',
-  },
-  timelineCircleCurrent: {
-    background: 'linear-gradient(135deg, #FFD700, #C9B037)',
-    color: '#000000',
-    boxShadow: '0 6px 20px rgba(255, 215, 0, 0.4), 0 0 0 2px rgba(255, 215, 0, 0.2)',
-    animation: 'pulse 2s infinite',
-  },
-  timelineCircleFuture: {
-    backgroundColor: '#2A2A2A',
-    color: '#8B7355',
-    border: '2px solid rgba(139, 115, 85, 0.3)',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
-  },
-  timelineLabel: {
-    fontSize: '0.8rem',
-    color: '#C9B037',
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  currentMonth: {
-    marginTop: '16px',
-    fontSize: '0.875rem',
-    color: '#B8860B',
-    textAlign: 'center',
-    transition: 'color 0.3s ease',
-  },
-  actionsCard: {
-    backgroundColor: '#1A1A1A',
-    backgroundImage: 'radial-gradient(circle at center, rgba(255, 215, 0, 0.04) 0%, transparent 70%)',
-    padding: '24px',
-    borderRadius: '12px',
-    boxShadow: '0 6px 25px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 215, 0, 0.1)',
-    border: '1px solid rgba(255, 215, 0, 0.15)',
-    transform: 'scale(1)',
-    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-  },
-  actionsCardHover: {
-    transform: 'scale(1.01)',
-    boxShadow: '0 12px 35px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255, 215, 0, 0.2)',
-    borderColor: 'rgba(255, 215, 0, 0.3)',
-  },
-  actionsTitle: {
-    fontSize: '1.125rem',
-    fontWeight: '600',
-    color: '#FFD700',
-    marginBottom: '20px',
-    textAlign: 'center',
-    transition: 'all 0.3s ease',
-  },
-  actionsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-    gap: '12px',
-    className: 'actions-grid',
-  },
-  actionButton: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '16px 12px',
-    fontSize: '0.875rem',
-    fontWeight: '600',
-    border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    textAlign: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-    transform: 'scale(1) translateY(0)',
-    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)',
-  },
-  actionButtonHover: {
-    transform: 'scale(1.08) translateY(-3px)',
-    filter: 'brightness(1.1)',
-  },
-  actionButtonActive: {
-    transform: 'scale(0.95) translateY(1px)',
-  },
-  payButton: {
-    background: 'linear-gradient(135deg, #4ECDC4, #FFD700)',
-    color: '#000000',
-  },
-  delayButton: {
-    background: 'linear-gradient(135deg, #FFB347, #FFD700)',
-    color: '#000000',
-  },
-  extraButton: {
-    background: 'linear-gradient(135deg, #A29BFE, #FFD700)',
-    color: '#000000',
-  },
-  undoButton: {
-    background: 'linear-gradient(135deg, #FF6B6B, #FFD700)',
-    color: '#000000',
-  },
-  extraPaymentModal: {
-    marginTop: '20px',
-    padding: '20px',
-    backgroundColor: '#1A1A1A',
-    backgroundImage: 'linear-gradient(135deg, rgba(255, 215, 0, 0.08) 0%, transparent 60%)',
-    borderRadius: '12px',
-    border: '2px solid rgba(255, 215, 0, 0.3)',
-    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 215, 0, 0.1)',
-    animation: 'modalSlideIn 0.3s ease',
-    transform: 'scale(1)',
-    transition: 'transform 0.2s ease',
-  },
-  extraPaymentModalHover: {
-    transform: 'scale(1.01)',
-  },
-  extraPaymentTitle: {
-    fontSize: '1rem',
-    fontWeight: '600',
-    color: '#FFD700',
-    marginBottom: '8px',
-    transition: 'color 0.3s ease',
-  },
-  extraPaymentInfo: {
-    fontSize: '0.875rem',
-    color: '#B8860B',
-    marginBottom: '16px',
-    transition: 'color 0.3s ease',
-  },
-  extraPaymentActions: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  },
-  extraPaymentInputContainer: {
-    flex: 1,
-  },
-  extraPaymentDetails: {
-    fontSize: '0.875rem',
-    color: '#FFD700',
-    marginTop: '8px',
-    fontWeight: '500',
-  },
-  extraPaymentButtons: {
-    display: 'flex',
-    gap: '12px',
-  },
-  confirmButton: {
-    flex: 1,
-    padding: '10px 16px',
-    fontSize: '0.875rem',
-    fontWeight: '600',
-    color: '#0A0A0A',
-    backgroundColor: '#FFD700',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    transform: 'scale(1)',
-  },
-  confirmButtonHover: {
-    transform: 'scale(1.05)',
-    backgroundColor: '#FFA500',
-    boxShadow: '0 6px 20px rgba(255, 215, 0, 0.4)',
-  },
-  cancelButton: {
-    flex: 1,
-    padding: '10px 16px',
-    fontSize: '0.875rem',
-    fontWeight: '600',
-    color: '#FFD700',
-    backgroundColor: '#2A2A2A',
-    border: '1px solid rgba(255, 215, 0, 0.2)',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    transform: 'scale(1)',
-  },
-  cancelButtonHover: {
-    transform: 'scale(1.05)',
-    backgroundColor: '#3A3A3A',
-    borderColor: 'rgba(255, 215, 0, 0.4)',
-    boxShadow: '0 6px 20px rgba(255, 215, 0, 0.2)',
-  },
-  chartsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-    gap: '20px',
-    className: 'charts-grid',
-  },
-  chartCard: {
-    backgroundColor: '#1A1A1A',
-    backgroundImage: 'linear-gradient(135deg, rgba(255, 215, 0, 0.04) 0%, transparent 70%)',
-    padding: '24px',
-    borderRadius: '12px',
-    boxShadow: '0 6px 25px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 215, 0, 0.1)',
-    border: '1px solid rgba(255, 215, 0, 0.15)',
-    transform: 'scale(1)',
-    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-    cursor: 'pointer',
-  },
-  chartCardHover: {
-    transform: 'scale(1.02)',
-    boxShadow: '0 12px 35px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255, 215, 0, 0.2)',
-    borderColor: 'rgba(255, 215, 0, 0.3)',
-  },
-  chartTitle: {
-    fontSize: '1.125rem',
-    fontWeight: '600',
-    color: '#FFD700',
-    marginBottom: '20px',
-    transition: 'all 0.3s ease',
-  },
-  chartContainer: {
-    height: '300px',
-    position: 'relative',
-    transition: 'all 0.3s ease',
-  },
-  creditScoreContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px',
-  },
-  creditScoreBar: {
-    width: '100%',
-  },
-  creditScoreTrack: {
-    width: '100%',
-    height: '8px',
-    backgroundColor: '#2A2A2A',
-    borderRadius: '4px',
-    overflow: 'hidden',
-    boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.3)',
-  },
-  creditScoreProgress: {
-    height: '100%',
-    transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-    background: 'linear-gradient(90deg, #FF6B6B, #FFD700, #4ECDC4)',
-    boxShadow: '0 0 10px rgba(255, 215, 0, 0.5)',
-   
-  },
-  creditScoreLabels: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    marginTop: '8px',
-    fontSize: '0.75rem',
-    color: '#8B7355',
-    transition: 'color 0.3s ease',
-  },
-  creditScoreValue: {
-    textAlign: 'center',
-    transition: 'transform 0.3s ease',
-    cursor: 'pointer',
-  },
-  creditScoreValueHover: {
-    transform: 'scale(1.05)',
-  },
-  creditScoreNumber: {
-    fontSize: '2rem',
-    fontWeight: '700',
-    lineHeight: 1,
-    background: 'linear-gradient(135deg, #FFD700, #FFA500)',
-    WebkitBackgroundClip: 'text',
-    backgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    textShadow: '0 0 20px rgba(255, 215, 0, 0.3)',
-    transition: 'all 0.3s ease',
-  },
-  creditScoreLabel: {
-    fontSize: '0.875rem',
-    color: '#B8860B',
-    marginTop: '4px',
-    transition: 'color 0.3s ease',
-  },
-  creditTip: {
-    marginTop: '16px',
-    padding: '12px',
-    backgroundColor: 'rgba(139, 0, 0, 0.1)',
-    borderRadius: '8px',
-    fontSize: '0.875rem',
-    color: '#FFB347',
-    border: '1px solid rgba(255, 179, 71, 0.2)',
-    transition: 'all 0.3s ease',
-  },
-  resetContainer: {
-    textAlign: 'center',
-  },
-  resetButton: {
-    padding: '12px 24px',
-    fontSize: '0.875rem',
-    fontWeight: '600',
-    color: '#FFD700',
-    backgroundColor: '#2A2A2A',
-    border: '2px solid rgba(255, 215, 0, 0.3)',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    transform: 'scale(1)',
-  },
-  resetButtonHover: {
-    transform: 'scale(1.05)',
-    backgroundColor: '#3A3A3A',
-    borderColor: 'rgba(255, 215, 0, 0.5)',
-    boxShadow: '0 6px 20px rgba(255, 215, 0, 0.2)',
-  },
-  notification: {
-    position: 'fixed',
-    bottom: '20px',
-    right: '20px',
-    maxWidth: '400px',
-    padding: '16px 20px',
-    backgroundColor: '#1A1A1A',
-    backgroundImage: 'linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, transparent 60%)',
-    color: '#FFD700',
-    borderRadius: '8px',
-    boxShadow: '0 15px 35px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 215, 0, 0.2)',
-    border: '1px solid rgba(255, 215, 0, 0.3)',
-    zIndex: 1000,
-    transform: 'translateX(0) scale(1)',
-    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-    animation: 'slideInFromRight 0.5s ease',
-  },
-  notificationHover: {
-    transform: 'translateX(-5px) scale(1.02)',
-    boxShadow: '0 20px 45px rgba(0, 0, 0, 0.8), 0 0 0 2px rgba(255, 215, 0, 0.4)',
-  },
-  notificationText: {
-    margin: 0,
-    fontSize: '0.875rem',
-    lineHeight: 1.5,
-    transition: 'all 0.3s ease',
-  },
-  
-  // Additional interactive elements matching creditStyles
-  glowEffect: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: 'radial-gradient(circle at center, rgba(255, 215, 0, 0.05) 0%, transparent 70%)',
-    opacity: 0,
-    transition: 'opacity 0.3s ease',
-    pointerEvents: 'none',
-  },
-  glowEffectActive: {
-    opacity: 1,
-  },
+const chartTooltipStyle = {
+  backgroundColor: '#141414',
+  border: '1px solid rgba(255,215,0,0.25)',
+  borderRadius: '12px',
+  color: '#fff',
+  fontSize: '13px',
+};
+
+const MetricTile = ({ label, value, tone = 'white', sub }) => {
+  const tones = {
+    white: 'text-white',
+    blue: 'text-sky-400',
+    red: 'text-red-400',
+    green: 'text-emerald-400',
+    orange: 'text-amber-400',
+    purple: 'text-violet-400',
+    gold: 'text-gold',
+  };
+  return (
+    <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-4">
+      <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-wider mb-1.5">{label}</div>
+      <div className={`font-display text-lg sm:text-xl font-bold ${tones[tone]}`}>{value}</div>
+      {sub && <div className="text-gray-600 text-[11px] mt-1 leading-snug">{sub}</div>}
+    </div>
+  );
+};
+
+const ScoreGauge = ({ score, color, label }) => {
+  const pct = Math.max(0, Math.min(1, (score - 300) / 550));
+  const radius = 80;
+  const circ = Math.PI * radius;
+  const dash = circ * pct;
+  return (
+    <div className="flex flex-col items-center">
+      <svg viewBox="0 0 200 110" className="w-full max-w-[220px]">
+        <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="12" strokeLinecap="round" />
+        <path
+          d="M 20 100 A 80 80 0 0 1 180 100"
+          fill="none"
+          stroke={color}
+          strokeWidth="12"
+          strokeLinecap="round"
+          strokeDasharray={`${dash} ${circ}`}
+          style={{ transition: 'stroke-dasharray 0.6s cubic-bezier(0.22,1,0.36,1), stroke 0.4s' }}
+        />
+      </svg>
+      <div className="-mt-6 text-center">
+        <div className="font-display text-4xl font-bold" style={{ color }}>{score}</div>
+        <div className="text-gray-500 text-sm mt-0.5">{label}</div>
+      </div>
+    </div>
+  );
 };
 
 const LoanSimulator = () => {
   const [loanAmount, setLoanAmount] = useState('10000');
   const [interestRate, setInterestRate] = useState('12');
   const [duration, setDuration] = useState('12');
-  const [originalDuration,setOriginalDuration] = useState('');
+  const [originalDuration, setOriginalDuration] = useState('');
   const [isSimulationStarted, setIsSimulationStarted] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(1);
   const [remainingBalance, setRemainingBalance] = useState(0);
@@ -681,24 +91,16 @@ const LoanSimulator = () => {
   const [showExtraPaymentInput, setShowExtraPaymentInput] = useState(false);
   const [originalLoanAmount, setOriginalLoanAmount] = useState(0);
   const [gameStateHistory, setGameStateHistory] = useState([]);
-  const [isMobile, setIsMobile] = useState(false);
-  
 
-  // Calculate current month's interest due
-  
-  
   // Calculate penalty due (only if there are pending amounts)
   const currentPenaltyDue = pendingPenalty;
 
+  // Auto-dismiss the notification toast
   useEffect(() => {
-      const checkMobile = () => {
-        setIsMobile(window.innerWidth <= 768);
-      };
-      
-      checkMobile();
-      window.addEventListener('resize', checkMobile);
-      return () => window.removeEventListener('resize', checkMobile);
-    }, []);
+    if (!notification) return;
+    const timer = setTimeout(() => setNotification(''), 6000);
+    return () => clearTimeout(timer);
+  }, [notification]);
 
   // Save current state before any action
   const saveCurrentState = () => {
@@ -724,7 +126,7 @@ const LoanSimulator = () => {
     }
 
     const lastState = gameStateHistory[gameStateHistory.length - 1];
-    
+
     // Restore all state values
     setCurrentMonth(lastState.currentMonth);
     setRemainingBalance(lastState.remainingBalance);
@@ -736,19 +138,16 @@ const LoanSimulator = () => {
     setCreditScore(lastState.creditScore);
     setBalanceHistory(lastState.balanceHistory);
     setLoanHistory(lastState.loanHistory);
-    // if (duration>originalDuration){
-    //   setDuration(prev=>prev-1);
-    // }
-    
+
     // Remove the last state from history
     setGameStateHistory(prev => prev.slice(0, -1));
-    
+
     setNotification(`↩️ Last action undone! Back to Month ${lastState.currentMonth}.`);
   };
 
   const calculateEMI = (principal, rate, time) => {
     const monthlyRate = rate / (12 * 100);
-    const emi = (principal * monthlyRate * Math.pow(1 + monthlyRate, time)) / 
+    const emi = (principal * monthlyRate * Math.pow(1 + monthlyRate, time)) /
                 (Math.pow(1 + monthlyRate, time) - 1);
     return Math.round(emi);
   };
@@ -762,9 +161,9 @@ const LoanSimulator = () => {
     const principal = parseFloat(loanAmount);
     const rate = parseFloat(interestRate);
     const time = parseInt(duration);
-    
+
     const emi = calculateEMI(principal, rate, time);
-    
+
     setMonthlyEMI(emi);
     setRemainingBalance(principal);
     setOriginalLoanAmount(principal);
@@ -779,7 +178,7 @@ const LoanSimulator = () => {
     setExtraPaymentAmount('');
     setShowExtraPaymentInput(false);
     setNotification('Simulation started! Choose your payment action for Month 1.');
-    
+
     // Initialize balance history
     const initialHistory = [{ month: 0, balance: principal, creditScore: 700 }];
     setBalanceHistory(initialHistory);
@@ -791,7 +190,7 @@ const LoanSimulator = () => {
     setLoanAmount('');
     setInterestRate('');
     setDuration('');
-    setOriginalDuration('')
+    setOriginalDuration('');
     setCurrentMonth(1);
     setRemainingBalance(0);
     setOriginalLoanAmount(0);
@@ -810,10 +209,11 @@ const LoanSimulator = () => {
     setGameStateHistory([]);
   };
 
-  let currentMonthInterest = remainingBalance > 0  ? (remainingBalance * parseFloat(interestRate || 0)) / (12 * 100) : 0;
-  if (remainingBalance<monthlyEMI && pendingPenalty==0){
-    currentMonthInterest=0;
+  let currentMonthInterest = remainingBalance > 0 ? (remainingBalance * parseFloat(interestRate || 0)) / (12 * 100) : 0;
+  if (remainingBalance < monthlyEMI && pendingPenalty == 0) {
+    currentMonthInterest = 0;
   }
+
   const payEMI = () => {
     if (remainingBalance <= 0) {
       setNotification('Loan already paid off!');
@@ -823,23 +223,20 @@ const LoanSimulator = () => {
     // Save state before making changes
     saveCurrentState();
 
-    
-
     // First pay any pending interest and penalty
     const totalPending = pendingInterest + pendingPenalty;
     const actualPayment = Math.min(monthlyEMI, remainingBalance + totalPending + currentMonthInterest);
-   
-    
+
     // Current month's interest
     let currentInterest = (remainingBalance * parseFloat(interestRate)) / (12 * 100);
-    
+
     // Total interest and penalty to be paid this month
-    if (remainingBalance<monthlyEMI && totalPending==0){
-      currentInterest=0;
+    if (remainingBalance < monthlyEMI && totalPending == 0) {
+      currentInterest = 0;
     }
     const totalInterestToPay = pendingInterest + currentInterest;
     const totalPenaltyToPay = pendingPenalty;
-    
+
     // Principal payment is what's left after paying interest and penalty
     const principalPayment = Math.max(0, actualPayment - totalInterestToPay - totalPenaltyToPay);
     const newBalance = Math.max(0, remainingBalance - principalPayment);
@@ -852,42 +249,41 @@ const LoanSimulator = () => {
     setPendingPenalty(0);
     setCreditScore(prev => Math.min(850, prev + 2));
 
-    if (currentMonth+1>Number(originalDuration) && newBalance > 0) {
+    if (currentMonth + 1 > Number(originalDuration) && newBalance > 0) {
       const monthlyInterest = (remainingBalance * parseFloat(interestRate)) / (12 * 100);
       const penalty = monthlyEMI * 0.1; // 10% penalty
       const extraInterest = monthlyInterest * 0.5; // 50% extra interest for delay
       const totalNewPenalty = penalty + extraInterest;
       setPendingPenalty(prev => prev + totalNewPenalty);
     }
-    
+
     // Update history
-    const newHistoryPoint = { 
-      month: currentMonth, 
-      balance: newBalance, 
-      creditScore: Math.min(850, creditScore + 2) 
+    const newHistoryPoint = {
+      month: currentMonth,
+      balance: newBalance,
+      creditScore: Math.min(850, creditScore + 2)
     };
     setBalanceHistory(prev => [...prev, newHistoryPoint]);
-    setLoanHistory(prev => [...prev, { 
-      month: currentMonth, 
-      action: 'Paid EMI', 
+    setLoanHistory(prev => [...prev, {
+      month: currentMonth,
+      action: 'Paid EMI',
       amount: actualPayment,
-      balance: newBalance 
+      balance: newBalance
     }]);
-    
+
     if (newBalance <= 0) {
       setNotification(`🎉 Congratulations! Loan paid off in month ${currentMonth}!`);
-      setCurrentMonth(prev=>prev+1);
+      setCurrentMonth(prev => prev + 1);
     } else {
       setNotification(`✅ Great! You paid ₹${Math.round(actualPayment)} on time. Balance reduced to ₹${Math.round(newBalance)}.`);
       setCurrentMonth(prev => {
-        if(remainingBalance>0){
-          if (prev+1>Number(originalDuration)){
-        setDuration((Number(duration)+1).toString());
-      }
-      return prev+1;
+        if (remainingBalance > 0) {
+          if (prev + 1 > Number(originalDuration)) {
+            setDuration((Number(duration) + 1).toString());
+          }
+          return prev + 1;
         }
         return prev;
-        
       });
     }
   };
@@ -909,27 +305,27 @@ const LoanSimulator = () => {
 
     const interestPending = pendingInterest + monthlyInterest;
     const penaltyPending = pendingPenalty + totalNewPenalty;
-    
+
     // Add to pending amounts (not yet paid)
     setPendingInterest(prev => prev + monthlyInterest);
     setPendingPenalty(prev => prev + totalNewPenalty);
     setCreditScore(prev => Math.max(300, prev - 15));
-    
+
     // Update history
-    const newHistoryPoint = { 
-      month: currentMonth, 
+    const newHistoryPoint = {
+      month: currentMonth,
       balance: remainingBalance, // Balance doesn't change when delaying
-      creditScore: Math.max(300, creditScore - 15) 
+      creditScore: Math.max(300, creditScore - 15)
     };
     setBalanceHistory(prev => [...prev, newHistoryPoint]);
-    setLoanHistory(prev => [...prev, { 
-      month: currentMonth, 
-      action: 'Delayed Payment', 
+    setLoanHistory(prev => [...prev, {
+      month: currentMonth,
+      action: 'Delayed Payment',
       amount: 0, // No payment made
-      balance: remainingBalance 
+      balance: remainingBalance
     }]);
-    
-    setNotification(`⏳ Payment delayed! Interest: ₹${Math.round(interestPending)} + Penalty: ₹${Math.round(penaltyPending)} = ₹${Math.round(interestPending+penaltyPending)} will be due next month.`);
+
+    setNotification(`⏳ Payment delayed! Interest: ₹${Math.round(interestPending)} + Penalty: ₹${Math.round(penaltyPending)} = ₹${Math.round(interestPending + penaltyPending)} will be due next month.`);
     setCurrentMonth(prev => prev + 1);
   };
 
@@ -948,23 +344,23 @@ const LoanSimulator = () => {
     saveCurrentState();
 
     const customAmount = parseFloat(extraPaymentAmount);
-    
+
     // First pay any pending interest and penalty
     const totalPending = pendingInterest + pendingPenalty;
     const currentInterest = (remainingBalance * parseFloat(interestRate)) / (12 * 100);
-    
+
     // Total payment available
     const totalPaymentAvailable = customAmount;
     const totalInterestToPay = pendingInterest + currentInterest;
     const totalPenaltyToPay = pendingPenalty;
-    
+
     // Calculate actual payment (can't exceed remaining balance + pending amounts)
     const totalPayment = Math.min(totalPaymentAvailable, remainingBalance + totalPending + currentInterest);
-    
+
     // Principal payment is what's left after paying interest and penalty
     const principalPayment = Math.max(0, totalPayment - totalInterestToPay - totalPenaltyToPay);
     const newBalance = Math.max(0, remainingBalance - principalPayment);
-    
+
     setRemainingBalance(newBalance);
     setTotalInterestPaid(prev => prev + totalInterestToPay);
     setTotalPenaltyPaid(prev => prev + totalPenaltyToPay);
@@ -974,21 +370,21 @@ const LoanSimulator = () => {
     setCreditScore(prev => Math.min(850, prev + 5));
     setExtraPaymentAmount('');
     setShowExtraPaymentInput(false);
-    
+
     // Update history
-    const newHistoryPoint = { 
-      month: currentMonth, 
-      balance: newBalance, 
-      creditScore: Math.min(850, creditScore + 5) 
+    const newHistoryPoint = {
+      month: currentMonth,
+      balance: newBalance,
+      creditScore: Math.min(850, creditScore + 5)
     };
     setBalanceHistory(prev => [...prev, newHistoryPoint]);
-    setLoanHistory(prev => [...prev, { 
-      month: currentMonth, 
-      action: 'Custom Payment', 
+    setLoanHistory(prev => [...prev, {
+      month: currentMonth,
+      action: 'Custom Payment',
       amount: totalPayment,
-      balance: newBalance 
+      balance: newBalance
     }]);
-    
+
     if (newBalance <= 0) {
       setNotification(`🎉 Congratulations! Loan paid off early in month ${currentMonth} with custom payment!`);
     } else {
@@ -1009,409 +405,310 @@ const LoanSimulator = () => {
     return 'Poor';
   };
 
+  const inputClass =
+    'w-full px-4 py-3 rounded-xl bg-black/40 border border-white/[0.12] text-white placeholder-gray-600 text-[15px] outline-none transition-all duration-200 focus:border-gold/60 focus:ring-2 focus:ring-gold/15';
+
+  const primaryAction =
+    'w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl text-sm font-bold text-black bg-gradient-to-br from-gold to-gold-dark transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(255,215,0,0.35)] cursor-pointer';
+  const ghostAction =
+    'w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl text-sm font-bold transition-all duration-300 hover:-translate-y-0.5 cursor-pointer border';
+
+  const totalDueThisMonth = currentPenaltyDue + currentMonthInterest + pendingInterest;
+
   return (
-    <div style={styles.container}>
-      <div style={styles.maxWidth}>
-        {/* Header */}
-        <div style={styles.header}>
-          <h1 style={styles.title}>Loan Simulator</h1>
-          <p style={styles.subtitle}>Understand how loans and EMIs work</p>
+    <div className="relative min-h-screen bg-[#0a0a0a] text-white font-sans overflow-x-hidden">
+      {/* Ambient background */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gold/[0.04] rounded-full blur-[180px]" />
+        <div className="absolute bottom-[5%] right-[-5%] w-[400px] h-[400px] bg-gold-dark/[0.03] rounded-full blur-[140px]" />
+      </div>
+
+      {/* Slim workspace toolbar */}
+      <header className="sticky top-0 z-40 bg-black/70 backdrop-blur-md border-b border-white/[0.06]">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
+          <Link to="/creditOrLoan" className="inline-flex items-center gap-2 text-gray-400 hover:text-gold text-sm font-medium transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Simulators</span>
+          </Link>
+
+          <div className="flex items-center gap-2.5">
+            <span className="w-8 h-8 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center text-gold">
+              <Landmark className="w-4 h-4" />
+            </span>
+            <span className="font-display text-base font-bold text-white">Loan Simulator</span>
+          </div>
+
+          {isSimulationStarted ? (
+            <button onClick={resetSimulation} className="inline-flex items-center gap-1.5 text-gray-400 hover:text-red-400 text-sm font-medium transition-colors cursor-pointer">
+              <RotateCcw className="w-4 h-4" />
+              <span className="hidden sm:inline">Reset</span>
+            </button>
+          ) : (
+            <span className="w-16" />
+          )}
         </div>
+      </header>
 
+      <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 py-8 sm:py-10">
         {!isSimulationStarted ? (
-          /* Loan Setup Card */
-          <div style={{width:"100%",display:"flex",justifyContent:"center",alignItems:"center"}}>
-          <div style={styles.setupCard}>
-            <h2 style={styles.setupTitle}>Setup Your Loan</h2>
-            
-            <div style={styles.formSpace}>
-              <div>
-                <label style={styles.label}>Loan Amount</label>
-                <div style={styles.inputContainer}>
-                  <span style={styles.currencySymbol}>₹</span>
-                  <input
-                    type="number"
-                    value={loanAmount}
-                    onChange={(e) => setLoanAmount(e.target.value)}
-                    style={{...styles.input, ...styles.inputWithLeftIcon}}
-                    placeholder="10000"
-                    onFocus={(e) => e.target.style.borderColor = '#FFA500'}
-                    onBlur={(e) => e.target.style.borderColor = '#D1D5DB'}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label style={styles.label}>Interest Rate</label>
-                <div style={styles.inputContainer}>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={interestRate}
-                    onChange={(e) => setInterestRate(e.target.value)}
-                    style={{...styles.input, ...styles.inputWithRightIcon}}
-                    placeholder="12"
-                    onFocus={(e) => e.target.style.borderColor = '#FFA500'}
-                    onBlur={(e) => e.target.style.borderColor = '#D1D5DB'}
-                  />
-                  <span style={styles.percentSymbol}>%</span>
-                </div>
-              </div>
-
-              <div>
-                <label style={styles.label}>Duration</label>
-                <div style={styles.inputContainer}>
-                  <input
-                    type="number"
-                    value={duration}
-                    onChange={(e) => {
-                      setDuration(e.target.value)
-                      setOriginalDuration(e.target.value)
-                    }
-                    }
-                    style={{...styles.input, ...styles.inputWithRightText}}
-                    placeholder="12"
-                    onFocus={(e) => e.target.style.borderColor = '#FFA500'}
-                    onBlur={(e) => e.target.style.borderColor = '#D1D5DB'}
-                  />
-                  <span style={styles.monthsSymbol}>months</span>
-                </div>
-              </div>
-
-              <button
-                onClick={startSimulation}
-                style={styles.startButton}
-                onMouseEnter={(e) => Object.assign(e.currentTarget.style, styles.startButtonHover)}
-                onMouseLeave={(e) => Object.assign(e.currentTarget.style, styles.startButton)}
-              >
-                Start Simulation
-              </button>
-            </div>
-          </div>
-          </div>
-        ) : (
-          /* Simulation Dashboard */
-          <div style={styles.dashboard}>
-            {/* Summary Cards */}
-            <div style={{...styles.cardsGrid,gridTemplateColumns: isMobile? 'repeat(auto-fit, minmax(150px, 1fr))': 'repeat(auto-fit, minmax(200px, 1fr))',}}>
-
-                <div style={styles.summaryCard}>
-                <h3 style={styles.cardTitle}>EMI (per month)</h3>
-                <p style={{...styles.cardValue, ...styles.blueValue}}>₹{monthlyEMI.toLocaleString()}</p>
-              </div>
-              
-              <div style={styles.summaryCard}>
-                <h3 style={styles.cardTitle}>Remaining Balance</h3>
-                <p style={{...styles.cardValue, ...styles.redValue}}>₹{Math.round(remainingBalance).toLocaleString()}</p>
-              </div>         
-              
-              <div style={styles.summaryCard}>
-                <h3 style={styles.cardTitle}>Principal Paid</h3>
-                <p style={{...styles.cardValue, ...styles.greenValue}}>₹{Math.round(totalPrincipalPaid).toLocaleString()}</p>
-              </div>    
-              
-              <div style={styles.summaryCard}>
-                <h3 style={styles.cardTitle}>Interest Paid</h3>
-                <p style={{...styles.cardValue, ...styles.orangeValue}}>₹{Math.round(totalInterestPaid).toLocaleString()}</p>
-              </div>
-
-              <div style={styles.summaryCard}>
-                <h3 style={styles.cardTitle}>Penalty Paid</h3>
-                <p style={{...styles.cardValue, color: '#EF4444'}}>₹{Math.round(totalPenaltyPaid).toLocaleString()}</p>
-              </div>
-
-              <div style={styles.summaryCard}>
-                <h3 style={styles.cardTitle}>Interest Due This Month</h3>
-                <p style={{...styles.cardValue, ...styles.orangeValue}}>₹{Math.round(currentMonthInterest + pendingInterest).toLocaleString()}</p>
-                <p style={styles.smallText}>
-                  {pendingInterest > 0 && `₹${Math.round(pendingInterest)} pending + `}₹{Math.round(currentMonthInterest)} current
-                </p>
-              </div>
-
-              <div style={styles.summaryCard}>
-                <h3 style={styles.cardTitle}>Penalty Due This Month</h3>
-                <p style={{...styles.cardValue, color: '#EF4444'}}>₹{Math.round(currentPenaltyDue).toLocaleString()}</p>
-                <p style={styles.smallText}>Late payment charges</p>
-              </div>
-
-              <div style={styles.summaryCard}>
-                <h3 style={styles.cardTitle}>Total Due This Month</h3>
-                <p style={{...styles.cardValue, color: '#EF4444'}}>₹{Math.round(currentPenaltyDue+currentMonthInterest + pendingInterest).toLocaleString()}</p>
-                <p style={styles.smallText}></p>
-              </div>
-
-              <div style={styles.summaryCard}>
-                <h3 style={styles.cardTitle}>Extra Paid</h3>
-                <p style={{...styles.cardValue, ...styles.purpleValue}}>₹{Math.round(totalInterestPaid + totalPenaltyPaid).toLocaleString()}</p>
-                <p style={styles.smallText}>Interest + Penalty</p>
-              </div>
-            </div>
-
-            {/* Timeline */}
-            <div style={styles.timelineCard}>
-              <h3 style={styles.timelineTitle}>Timeline Progress</h3>
-              <div style={styles.timeline}>
-                {Array.from({ length: parseInt(duration) }, (_, i) => (
-                  <div key={i} style={styles.timelineItem}>
-                    <div style={{
-                      ...styles.timelineCircle,
-                      ...(i + 1 < currentMonth ? loanHistory.find((item) => item.month === i + 1 && item.action=="Delayed Payment") ? styles.timelineCircleDelayed : styles.timelineCircleCompleted :
-                          i + 1 === currentMonth ? styles.timelineCircleCurrent :
-                          styles.timelineCircleFuture)
-                    }}>
-                      {i + 1}
-                    </div>
-                    <span style={styles.timelineLabel}>Month {i + 1}</span>
-                  </div>
+          /* ---------------- SETUP ---------------- */
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-[1fr_1.1fr] gap-8 items-center pt-6"
+          >
+            <div>
+              <span className="text-gold text-xs font-bold uppercase tracking-widest">Set the terms</span>
+              <h1 className="font-display text-3xl sm:text-4xl font-bold mt-3 mb-4 leading-tight">
+                Borrow on paper,<br />repay it your way.
+              </h1>
+              <p className="text-gray-400 text-[15px] leading-relaxed mb-6">
+                Enter a principal, rate, and term. We'll compute the EMI — then you decide, month by
+                month, whether to pay on time, prepay, or delay and watch the cost compound.
+              </p>
+              <ul className="flex flex-col gap-3">
+                {[
+                  ['Pay EMI', 'Stay on schedule, nudge your score up'],
+                  ['Pay custom', 'Prepay to kill interest faster'],
+                  ['Delay', 'See penalties and interest stack up'],
+                ].map(([k, v], i) => (
+                  <li key={k} className="flex items-center gap-3 text-sm">
+                    <span className="w-7 h-7 rounded-full bg-gold/10 border border-gold/20 text-gold flex items-center justify-center font-bold text-xs flex-shrink-0">{i + 1}</span>
+                    <span className="text-white font-semibold">{k}</span>
+                    <span className="text-gray-500">— {v}</span>
+                  </li>
                 ))}
-              </div>
-              <div style={styles.currentMonth}>
-                Current: <span style={{fontWeight: '600', color: '#2563EB'}}>Month {currentMonth}</span>
-              </div>
+              </ul>
             </div>
 
-            {/* User Actions */}
-            {remainingBalance > 0 && (
-              <div style={styles.actionsCard}>
-                <h3 style={styles.actionsTitle}>Choose Your Action for Month {currentMonth}</h3>
-                <div style={styles.actionsGrid}>
-                  <button
-                    onClick={payEMI}
-                    style={{...styles.actionButton, ...styles.payButton}}
-                    onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
-                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                  >
-                    <span>✅</span>
-                    <span>
-                      Pay {
-                        (remainingBalance + pendingInterest + pendingPenalty+currentMonthInterest) < monthlyEMI 
-                          ? `₹${Math.round(remainingBalance + pendingInterest + pendingPenalty + currentMonthInterest)}` 
-                          : `EMI (₹${monthlyEMI})`
-                      }
-                      {(pendingInterest > 0 || pendingPenalty > 0) && (
-                        <span style={{fontSize: '0.75rem', display: 'block'}}>
-                          (incl. ₹{Math.round(pendingInterest + pendingPenalty)} pending)
-                        </span>
-                      )}
-                    </span>
-                  </button>
-                  
-                  <button
-                    onClick={delayPayment}
-                    style={{...styles.actionButton, ...styles.delayButton}}
-                    onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
-                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                  >
-                    <span>⏳</span>
-                    <span>Delay Payment</span>
-                  </button>
-                  
-                  <button
-                    onClick={() => setShowExtraPaymentInput(true)}
-                    style={{...styles.actionButton, ...styles.extraButton}}
-                    onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
-                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                  >
-                    <span>💰</span>
-                    <span>Pay Custom</span>
-                  </button>
-
-                  {gameStateHistory.length > 0 && (
-                    <button
-                      onClick={undoLastAction}
-                      style={{...styles.actionButton, ...styles.undoButton}}
-                      onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
-                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                    >
-                      <span>↩️</span>
-                      <span>Undo Last Action</span>
-                    </button>
-                  )}
+            <div className="bg-white/[0.03] border border-white/[0.08] rounded-3xl p-7 sm:p-8 shadow-[0_30px_80px_rgba(0,0,0,0.5)]">
+              <div className="flex flex-col gap-5">
+                <div>
+                  <label htmlFor="loan-amount" className="block text-gray-300 text-sm font-medium mb-1.5">Loan Amount</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium pointer-events-none">₹</span>
+                    <input id="loan-amount" type="number" value={loanAmount} onChange={(e) => setLoanAmount(e.target.value)} className={`${inputClass} pl-9`} placeholder="10000" />
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="interest-rate" className="block text-gray-300 text-sm font-medium mb-1.5">Interest Rate</label>
+                  <div className="relative">
+                    <input id="interest-rate" type="number" step="0.1" value={interestRate} onChange={(e) => setInterestRate(e.target.value)} className={`${inputClass} pr-9`} placeholder="12" />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium pointer-events-none">%</span>
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="loan-duration" className="block text-gray-300 text-sm font-medium mb-1.5">Duration</label>
+                  <div className="relative">
+                    <input id="loan-duration" type="number" value={duration} onChange={(e) => { setDuration(e.target.value); setOriginalDuration(e.target.value); }} className={`${inputClass} pr-20`} placeholder="12" />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 text-sm pointer-events-none">months</span>
+                  </div>
+                </div>
+                <button onClick={startSimulation} className="mt-2 w-full px-6 py-3.5 rounded-full font-bold text-sm uppercase tracking-wider text-black bg-gradient-to-br from-gold to-gold-dark shadow-[0_8px_30px_rgba(255,215,0,0.25)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_40px_rgba(255,215,0,0.4)] cursor-pointer">
+                  Start Simulation
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          /* ---------------- COCKPIT DASHBOARD ---------------- */
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6"
+          >
+            {/* ===== LEFT: CONTROL RAIL ===== */}
+            <aside className="lg:sticky lg:top-24 lg:self-start flex flex-col gap-5">
+              <div className="bg-white/[0.03] border border-white/[0.08] rounded-3xl p-6">
+                <div className="flex items-center justify-between mb-5">
+                  <div>
+                    <div className="text-gray-500 text-[11px] font-semibold uppercase tracking-wider">Repayment</div>
+                    <div className="font-display text-2xl font-bold text-white mt-0.5">Month {currentMonth}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-gray-500 text-[11px] font-semibold uppercase tracking-wider">Monthly EMI</div>
+                    <div className="font-display text-xl font-bold text-sky-400 mt-0.5">₹{monthlyEMI.toLocaleString()}</div>
+                  </div>
                 </div>
 
-                {/* Extra Payment Input Modal */}
-                {showExtraPaymentInput && (
-                  <div style={styles.extraPaymentModal}>
-                    <h4 style={styles.extraPaymentTitle}>Enter Custom Payment Amount</h4>
-                    <p style={styles.extraPaymentInfo}>Choose any amount to pay (can be less than, equal to, or more than EMI)</p>
-                    <div style={styles.extraPaymentActions}>
-                      <div style={styles.extraPaymentInputContainer}>
-                        <div style={styles.inputContainer}>
-                          <span style={styles.currencySymbol}>₹</span>
-                          <input
-                            type="number"
-                            value={extraPaymentAmount}
-                            onChange={(e) => setExtraPaymentAmount(e.target.value)}
-                            style={{...styles.input, ...styles.inputWithLeftIcon, borderColor: '#C084FC'}}
-                            placeholder="Enter custom amount"
-                            min="1"
-                            onFocus={(e) => e.target.style.borderColor = '#7C3AED'}
-                            onBlur={(e) => e.target.style.borderColor = '#C084FC'}
-                          />
-                        </div>
-                        {extraPaymentAmount && (
-                          <p style={styles.extraPaymentDetails}>
-                            Payment amount: ₹{Math.min(parseFloat(extraPaymentAmount || 0), remainingBalance + pendingInterest + pendingPenalty + currentMonthInterest)}
-                            {parseFloat(extraPaymentAmount || 0) > (remainingBalance + pendingInterest + pendingPenalty + currentMonthInterest) && (
-                              <span style={{color: '#EA580C'}}> (capped at total due)</span>
-                            )}
-                            {(pendingInterest > 0 || pendingPenalty > 0) && (
-                              <span style={{display: 'block', fontSize: '0.75rem', color: '#7C3AED'}}>
-                                Includes ₹{Math.round(pendingInterest + pendingPenalty)} pending charges
-                              </span>
-                            )}
-                          </p>
-                        )}
-                      </div>
-                      <div style={styles.extraPaymentButtons}>
-                        <button
-                          onClick={payExtra}
-                          style={styles.confirmButton}
-                          onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
-                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                        >
-                          Confirm Payment
-                        </button>
-                        <button
-                          onClick={() => {
-                            setShowExtraPaymentInput(false);
-                            setExtraPaymentAmount('');
-                          }}
-                          style={styles.cancelButton}
-                          onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
-                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
+                {/* Hero stat: remaining balance */}
+                <div className="rounded-2xl bg-white/[0.03] border border-white/[0.07] p-5">
+                  <div className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">Remaining balance</div>
+                  <div className="font-display text-4xl font-bold text-white">₹{Math.round(remainingBalance).toLocaleString()}</div>
+                  <div className="mt-3 h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
+                    <div className="h-full rounded-full bg-gradient-to-r from-gold to-gold-dark transition-all duration-500" style={{ width: `${originalLoanAmount > 0 ? Math.min(100, (totalPrincipalPaid / originalLoanAmount) * 100) : 0}%` }} />
+                  </div>
+                  <div className="text-[11px] text-gray-500 mt-1.5">
+                    ₹{Math.round(totalPrincipalPaid).toLocaleString()} principal cleared of ₹{Math.round(originalLoanAmount).toLocaleString()}
+                  </div>
+                </div>
+
+                {/* Total due callout */}
+                {totalDueThisMonth > 0 && (
+                  <div className="mt-3 flex items-center justify-between rounded-2xl bg-red-500/[0.06] border border-red-500/20 px-4 py-3">
+                    <span className="text-gray-400 text-xs">Due this month</span>
+                    <span className="font-display text-lg font-bold text-red-400">₹{Math.round(totalDueThisMonth).toLocaleString()}</span>
                   </div>
                 )}
               </div>
-            )}
-            
-            {gameStateHistory.length > 0 && remainingBalance==0 && (
-                    <button
-                      onClick={undoLastAction}
-                      style={{...styles.actionButton, ...styles.undoButton}}
-                      onMouseOver={(e) => e.target.style.backgroundColor = '#EA580C'}
-                      onMouseOut={(e) => e.target.style.backgroundColor = '#F97316'}
-                    >
-                      <span>↩️</span>
-                      <span>Undo Last Action</span>
+
+              {/* Actions */}
+              {remainingBalance > 0 ? (
+                <div className="bg-white/[0.03] border border-white/[0.08] rounded-3xl p-6">
+                  <div className="text-gray-500 text-[11px] font-semibold uppercase tracking-wider mb-4">Your move for Month {currentMonth}</div>
+                  <div className="flex flex-col gap-2.5">
+                    <button onClick={payEMI} className={primaryAction}>
+                      <CheckCircle2 className="w-4 h-4" />
+                      Pay {(remainingBalance + pendingInterest + pendingPenalty + currentMonthInterest) < monthlyEMI ? `₹${Math.round(remainingBalance + pendingInterest + pendingPenalty + currentMonthInterest).toLocaleString()}` : `EMI (₹${monthlyEMI.toLocaleString()})`}
+                    </button>
+                    {(pendingInterest > 0 || pendingPenalty > 0) && (
+                      <p className="text-[11px] text-amber-400/80 text-center -mt-1">includes ₹{Math.round(pendingInterest + pendingPenalty).toLocaleString()} pending</p>
+                    )}
+                    <button onClick={() => setShowExtraPaymentInput(true)} className={`${ghostAction} bg-white/[0.03] border-violet-500/30 text-violet-300 hover:bg-violet-500/10 hover:border-violet-500/60`}>
+                      <Coins className="w-4 h-4" /> Pay custom amount
+                    </button>
+                    <button onClick={delayPayment} className={`${ghostAction} bg-white/[0.03] border-amber-500/30 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/60`}>
+                      <Clock className="w-4 h-4" /> Delay payment
+                    </button>
+                    {gameStateHistory.length > 0 && (
+                      <button onClick={undoLastAction} className="mt-1 w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-semibold text-gray-400 hover:text-white border border-white/[0.1] hover:bg-white/[0.04] transition-all duration-300 cursor-pointer">
+                        <Undo2 className="w-4 h-4" /> Undo last action
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Inline custom payment */}
+                  <AnimatePresence>
+                    {showExtraPaymentInput && (
+                      <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }} className="overflow-hidden">
+                        <div className="mt-4 p-4 rounded-2xl bg-violet-500/[0.05] border border-violet-500/25">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="text-white font-bold text-sm">Custom payment</h4>
+                            <button onClick={() => { setShowExtraPaymentInput(false); setExtraPaymentAmount(''); }} className="text-gray-500 hover:text-white cursor-pointer"><X className="w-4 h-4" /></button>
+                          </div>
+                          <p className="text-gray-500 text-xs mb-3">Less, equal, or more than your EMI — prepaying kills interest faster.</p>
+                          <div className="relative mb-2.5">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium pointer-events-none">₹</span>
+                            <input type="number" value={extraPaymentAmount} onChange={(e) => setExtraPaymentAmount(e.target.value)} className={`${inputClass} pl-9 focus:border-violet-400/60 focus:ring-violet-400/15`} placeholder="Amount" min="1" />
+                          </div>
+                          {extraPaymentAmount && (
+                            <p className="text-gold text-xs font-medium mb-3">
+                              Applying ₹{Math.min(parseFloat(extraPaymentAmount || 0), remainingBalance + pendingInterest + pendingPenalty + currentMonthInterest).toLocaleString()}
+                              {parseFloat(extraPaymentAmount || 0) > (remainingBalance + pendingInterest + pendingPenalty + currentMonthInterest) && (
+                                <span className="text-orange-400"> (capped at total due)</span>
+                              )}
+                            </p>
+                          )}
+                          <button onClick={payExtra} className={primaryAction}>Confirm payment</button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <div className="bg-emerald-500/[0.06] border border-emerald-500/25 rounded-3xl p-6 text-center">
+                  <CheckCircle2 className="w-9 h-9 mx-auto mb-3 text-emerald-400" />
+                  <h3 className="font-display text-lg font-bold text-white mb-1">Loan cleared</h3>
+                  <p className="text-gray-400 text-sm mb-4">You've paid this loan off. Review your stats, or start over.</p>
+                  {gameStateHistory.length > 0 && (
+                    <button onClick={undoLastAction} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-gray-300 border border-white/[0.12] hover:bg-white/[0.06] transition-colors cursor-pointer">
+                      <Undo2 className="w-4 h-4" /> Undo last action
                     </button>
                   )}
+                </div>
+              )}
+            </aside>
 
-            {/* Visualizations */}
-            <div style={styles.chartsGrid}>
-              {/* Balance Chart */}
-              <div style={styles.chartCard}>
-                <h3 style={styles.chartTitle}>Loan Balance Over Time</h3>
-                <div style={styles.chartContainer}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={balanceHistory}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip formatter={(value) => [`₹${Math.round(value).toLocaleString()}`, 'Balance']} />
-                      <Line type="monotone" dataKey="balance" stroke="#3B82F6" strokeWidth={2} />
-                    </LineChart>
-                  </ResponsiveContainer>
+            {/* ===== RIGHT: ANALYTICS ===== */}
+            <div className="flex flex-col gap-6 min-w-0">
+              {/* Metric tiles */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <MetricTile label="Principal paid" value={`₹${Math.round(totalPrincipalPaid).toLocaleString()}`} tone="green" />
+                <MetricTile label="Interest paid" value={`₹${Math.round(totalInterestPaid).toLocaleString()}`} tone="orange" />
+                <MetricTile label="Penalty paid" value={`₹${Math.round(totalPenaltyPaid).toLocaleString()}`} tone="red" />
+                <MetricTile label="Interest due" value={`₹${Math.round(currentMonthInterest + pendingInterest).toLocaleString()}`} tone="orange" sub={`${pendingInterest > 0 ? `₹${Math.round(pendingInterest)} pending + ` : ''}₹${Math.round(currentMonthInterest)} now`} />
+                <MetricTile label="Penalty due" value={`₹${Math.round(currentPenaltyDue).toLocaleString()}`} tone="red" sub="Late charges" />
+                <MetricTile label="Extra paid" value={`₹${Math.round(totalInterestPaid + totalPenaltyPaid).toLocaleString()}`} tone="purple" sub="Interest + penalty" />
+              </div>
+
+              {/* Timeline */}
+              <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
+                <h3 className="font-display text-base font-bold text-white mb-5">Timeline</h3>
+                <div className="flex overflow-x-auto gap-3 pb-2">
+                  {Array.from({ length: parseInt(duration) }, (_, i) => {
+                    const isDelayed = loanHistory.find((item) => item.month === i + 1 && item.action == 'Delayed Payment');
+                    const isPast = i + 1 < currentMonth;
+                    const isCurrent = i + 1 === currentMonth;
+                    return (
+                      <div key={i} className="flex flex-col items-center min-w-[52px]">
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-bold mb-1.5 transition-all duration-300 ${
+                          isPast
+                            ? isDelayed
+                              ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-black'
+                              : 'bg-gradient-to-br from-gold to-gold-dark text-black'
+                            : isCurrent
+                            ? 'bg-gradient-to-br from-gold to-amber-300 text-black ring-2 ring-gold/40 animate-pulse'
+                            : 'bg-white/[0.04] text-gray-600 border border-white/[0.1]'
+                        }`}>
+                          {i + 1}
+                        </div>
+                        <span className={`text-[10px] ${isCurrent ? 'text-gold font-semibold' : 'text-gray-600'}`}>M{i + 1}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Credit Score */}
-              <div style={styles.chartCard}>
-                <h3 style={styles.chartTitle}>Credit Score</h3>
-                <div style={styles.creditScoreContainer}>
-                  <div style={styles.creditScoreBar}>
-                    <div style={styles.creditScoreTrack}>
-                      <div
-                        style={{
-                          ...styles.creditScoreProgress,
-                          width: `${((creditScore - 300) / 550) * 100}%`,
-                          backgroundColor: getCreditScoreColor(creditScore)
-                        }}
-                      />
-                    </div>
-                    <div style={styles.creditScoreLabels}>
-                      <span>300</span>
-                      <span>850</span>
-                    </div>
-                  </div>
-                  <div style={styles.creditScoreValue}>
-                    <div style={{...styles.creditScoreNumber, color: getCreditScoreColor(creditScore)}}>
-                      {creditScore}
-                    </div>
-                    <div style={styles.creditScoreLabel}>{getCreditScoreLabel(creditScore)}</div>
+              {/* Balance chart + score */}
+              <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-6">
+                <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
+                  <h3 className="font-display text-base font-bold text-white mb-5">Balance over time</h3>
+                  <div className="h-[240px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={balanceHistory}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                        <XAxis dataKey="month" stroke="#6b7280" tick={{ fill: '#6b7280', fontSize: 12 }} />
+                        <YAxis stroke="#6b7280" tick={{ fill: '#6b7280', fontSize: 12 }} />
+                        <Tooltip formatter={(value) => [`₹${Math.round(value).toLocaleString()}`, 'Balance']} contentStyle={chartTooltipStyle} />
+                        <Line type="monotone" dataKey="balance" stroke="#FFD700" strokeWidth={2.5} dot={{ fill: '#FFD700', r: 3 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
                   </div>
                 </div>
-                
-                <div style={styles.creditTip}>
-                  <p>💡 <strong>Tip:</strong> Pay on time to improve your credit score!</p>
+
+                <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6 flex flex-col">
+                  <h3 className="font-display text-base font-bold text-white mb-2">Credit score</h3>
+                  <div className="flex-1 flex items-center justify-center py-2">
+                    <ScoreGauge score={creditScore} color={getCreditScoreColor(creditScore)} label={getCreditScoreLabel(creditScore)} />
+                  </div>
+                  <div className="flex items-start gap-2 px-3.5 py-3 rounded-xl bg-amber-400/[0.06] border border-amber-400/15 text-amber-300/90 text-xs">
+                    <Lightbulb className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                    <span>Pay on time to improve your credit score.</span>
+                  </div>
                 </div>
               </div>
             </div>
-
-            {/* Reset Button */}
-            <div style={styles.resetContainer}>
-              <button
-                onClick={resetSimulation}
-                style={styles.resetButton}
-                onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
-                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-              >
-                Reset Simulation
-              </button>
-            </div>
-          </div>
+          </motion.div>
         )}
-
-        {/* Notifications */}
-        {/* {notification && (
-          <div style={styles.notification}>
-            <p style={styles.notificationText}>{notification}</p>
-          </div>
-        )} */}
       </div>
 
-      <style>
-        {`
-          @media (max-width: 768px) {
-            .charts-grid {
-              grid-template-columns: 1fr !important;
-            }
-            .actions-grid {
-              grid-template-columns: repeat(2, 1fr) !important;
-            }
-            .cards-grid {
-              grid-template-columns: repeat(2, 1fr) !important;
-            }
-            .extra-payment-actions {
-              flex-direction: column !important;
-            }
-          }
-          
-          @media (max-width: 480px) {
-            .cards-grid {
-              grid-template-columns: 1fr !important;
-            }
-          }
-          
-          input:focus {
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
-          }
-          
-          button:hover {
-            transform: translateY(-1px);
-          }
-          
-          button:active {
-            transform: translateY(0);
-          }
-        `}
-      </style>
+      {/* Notification toast */}
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            initial={{ opacity: 0, x: 40, scale: 0.96 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 40, scale: 0.96 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed bottom-5 right-5 z-50 max-w-sm flex items-start gap-3 px-5 py-4 rounded-2xl bg-[#141414] border border-gold/25 shadow-[0_20px_50px_rgba(0,0,0,0.7)]"
+          >
+            <Info className="w-4 h-4 mt-0.5 flex-shrink-0 text-gold" />
+            <p className="text-gray-200 text-sm leading-relaxed">{notification}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -1,37 +1,55 @@
-/* Add this to your index.css file to remove default browser margins/padding */
+@import "tailwindcss";
+@source "./**/*.{js,jsx,ts,tsx}";
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@theme {
+  --font-display: 'Forum', 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', serif;
+  --font-sans: 'Forum', 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', serif;
+  --color-gold: #FFD700;
+  --color-gold-dark: #FFA500;
+  --color-ink: #0a0a0a;
+  --color-ink-secondary: #1a1a1a;
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
+
+html {
+  scroll-behavior: smooth;
+  font-size: 18px;
 }
 
-#root {
-  margin: 0;
-  padding: 0;
-  width: 100vw;
-  height: 100vh;
-}
-
-/* Alternative approach - you can also add these specific resets */
-body {
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* If you're still seeing white space, try this more aggressive reset */
 html, body, #root {
-  margin: 0 !important;
-  padding: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  border: none !important;
-  outline: none !important;
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  color: #ffffff;
+  background: var(--color-ink);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Hide scrollbar visually while keeping the page scrollable */
+html {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

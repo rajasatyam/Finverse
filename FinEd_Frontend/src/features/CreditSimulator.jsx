@@ -1,587 +1,80 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Banknote,
+  CheckCircle2,
+  Coins,
+  CreditCard,
+  Info,
+  Lightbulb,
+  ReceiptText,
+  RotateCcw,
+  Undo2,
+  X,
+  ShoppingBag,
+} from 'lucide-react';
 
+const chartTooltipStyle = {
+  backgroundColor: '#141414',
+  border: '1px solid rgba(255,215,0,0.25)',
+  borderRadius: '12px',
+  color: '#fff',
+  fontSize: '13px',
+};
 
-const styles = {
-  container: {
-    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    backgroundColor: '#0A0A0A',
-    backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(255, 215, 0, 0.03) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255, 215, 0, 0.02) 0%, transparent 50%)',
-    minHeight: '100vh',
-    padding: '20px',
-    transition: 'all 0.3s ease',
-  },
-  maxWidth: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-  },
-  header: {
-    textAlign: 'center',
-    marginBottom: '30px',
-    transform: 'translateY(0)',
-    transition: 'transform 0.3s ease',
-  },
-  title: {
-    fontSize: '2.5rem',
-    fontWeight: '700',
-    color: '#FFD700',
-    marginBottom: '8px',
-    background: 'linear-gradient(135deg, #FFD700, #FFA500, #FF8C00)',
-    WebkitBackgroundClip: 'text',
-    backgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    textShadow: '0 0 30px rgba(255, 215, 0, 0.3)',
-    cursor: 'default',
-    transition: 'all 0.4s ease',
-    position: 'relative',
-  },
-  titleHover: {
-    transform: 'scale(1.05)',
-    textShadow: '0 0 40px rgba(255, 215, 0, 0.6), 0 0 60px rgba(255, 215, 0, 0.3)',
-  },
-  subtitle: {
-    fontSize: '1.1rem',
-    color: '#B8860B',
-    fontWeight: '400',
-    transition: 'color 0.3s ease',
-  },
-  setupCard: {
-    backgroundColor: '#1A1A1A',
-    backgroundImage: 'linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, transparent 50%)',
-    borderRadius: '16px',
-    padding: '32px',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 215, 0, 0.1)',
-    border: '2px solid rgba(255, 215, 0, 0.2)',
-    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-    transform: 'translateY(0) scale(1)',
-    position: 'relative',
-    overflow: 'hidden',
-    width:'400px'
-  },
-  setupCardHover: {
-    transform: 'translateY(-8px) scale(1.02)',
-    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255, 215, 0, 0.3)',
-    borderColor: 'rgba(255, 215, 0, 0.4)',
-  },
-  setupTitle: {
-    fontSize: '1.5rem',
-    fontWeight: '600',
-    color: '#FFD700',
-    marginBottom: '24px',
-    textAlign: 'center',
-    transition: 'all 0.3s ease',
-  },
-  formSpace: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px',
-  },
-  label: {
-    display: 'block',
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    color: '#D4AF37',
-    marginBottom: '6px',
-    transition: 'color 0.3s ease',
-  },
-  inputContainer: {
-    position: 'relative',
-    display: 'flex',
-    alignItems: 'center',
-  },
-  input: {
-    width: '100%',
-    padding: '12px 16px',
-    fontSize: '1rem',
-    border: '2px solid rgba(255, 215, 0, 0.2)',
-    borderRadius: '8px',
-    transition: 'all 0.3s ease',
-    backgroundColor: '#2A2A2A',
-    color: '#FFD700',
-    outline: 'none',
-  },
-  inputFocus: {
-    borderColor: '#FFD700',
-    boxShadow: '0 0 0 4px rgba(255, 215, 0, 0.1), 0 0 20px rgba(255, 215, 0, 0.2)',
-    transform: 'scale(1.02)',
-  },
-  inputWithLeftIcon: {
-    paddingLeft: '36px',
-  },
-  inputWithRightIcon: {
-    paddingRight: '36px',
-  },
-  currencySymbol: {
-    position: 'absolute',
-    left: '12px',
-    color: '#B8860B',
-    fontWeight: '500',
-    pointerEvents: 'none',
-    transition: 'color 0.3s ease',
-  },
-  percentSymbol: {
-    position: 'absolute',
-    right: '12px',
-    color: '#B8860B',
-    fontWeight: '500',
-    pointerEvents: 'none',
-    transition: 'color 0.3s ease',
-  },
-  startButton: {
-    width: '100%',
-    padding: '14px',
-    fontSize: '1rem',
-    fontWeight: '600',
-    color: '#0A0A0A',
-    backgroundColor: '#FFD700',
-    border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    marginTop: '10px',
-    position: 'relative',
-    overflow: 'hidden',
-    transform: 'scale(1)',
-  },
-  startButtonHover: {
-    transform: 'scale(1.02)',
-    backgroundColor: '#FFA500',
-    
-  },
-  startButtonActive: {
-    transform: 'scale(0.98)',
-  },
-  dashboard: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
-  },
-  cardsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '16px',
-    className: 'cards-grid',
-  },
-  summaryCard: {
-    backgroundColor: '#1A1A1A',
-    backgroundImage: 'linear-gradient(135deg, rgba(255, 215, 0, 0.03) 0%, transparent 60%)',
-    padding: '20px',
-    borderRadius: '12px',
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 215, 0, 0.1)',
-    border: '1px solid rgba(255, 215, 0, 0.15)',
-    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-    cursor: 'pointer',
-    transform: 'translateY(0) scale(1)',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  summaryCardHover: {
-    transform: 'translateY(-6px) scale(1.03)',
-    boxShadow: '0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(255, 215, 0, 0.2)',
-    borderColor: 'rgba(255, 215, 0, 0.3)',
-  },
-  cardTitle: {
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    color: '#B8860B',
-    marginBottom: '8px',
-    textTransform: 'uppercase',
-    letterSpacing: '0.025em',
-    transition: 'color 0.3s ease',
-  },
-  cardTitleHover: {
-    color: '#FFD700',
-  },
-  cardValue: {
-    fontSize: '1.5rem',
-    fontWeight: '700',
-    margin: '0',
-    transition: 'all 0.3s ease',
-  },
-  redValue: { 
-    color: '#FF6B6B',
-    textShadow: '0 0 10px rgba(255, 107, 107, 0.3)',
-  },
-  greenValue: { 
-    color: '#4ECDC4',
-    textShadow: '0 0 10px rgba(78, 205, 196, 0.3)',
-  },
-  orangeValue: { 
-    color: '#FFB347',
-    textShadow: '0 0 10px rgba(255, 179, 71, 0.3)',
-  },
-  blueValue: { 
-    color: '#74B9FF',
-    textShadow: '0 0 10px rgba(116, 185, 255, 0.3)',
-  },
-  purpleValue: { 
-    color: '#A29BFE',
-    textShadow: '0 0 10px rgba(162, 155, 254, 0.3)',
-  },
-  smallText: {
-    fontSize: '0.75rem',
-    color: '#8B7355',
-    marginTop: '4px',
-    transition: 'color 0.3s ease',
-  },
-  timelineCard: {
-    backgroundColor: '#1A1A1A',
-    backgroundImage: 'linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 165, 0, 0.02) 100%)',
-    padding: '24px',
-    borderRadius: '12px',
-    boxShadow: '0 6px 25px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 215, 0, 0.1)',
-    border: '1px solid rgba(255, 215, 0, 0.15)',
-    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-    transform: 'scale(1)',
-    cursor: 'pointer',
-  },
-  timelineCardHover: {
-    transform: 'scale(1.02)',
-    boxShadow: '0 12px 35px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255, 215, 0, 0.2)',
-    borderColor: 'rgba(255, 215, 0, 0.3)',
-  },
-  timelineTitle: {
-    fontSize: '1.125rem',
-    fontWeight: '600',
-    color: '#FFD700',
-    marginBottom: '20px',
-    transition: 'all 0.3s ease',
-  },
-  currentMonth: {
-    fontSize: '0.875rem',
-    color: '#B8860B',
-    textAlign: 'center',
-    transition: 'color 0.3s ease',
-  },
-  actionsCard: {
-    backgroundColor: '#1A1A1A',
-    backgroundImage: 'radial-gradient(circle at center, rgba(255, 215, 0, 0.04) 0%, transparent 70%)',
-    padding: '24px',
-    borderRadius: '12px',
-    boxShadow: '0 6px 25px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 215, 0, 0.1)',
-    border: '1px solid rgba(255, 215, 0, 0.15)',
-    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-    transform: 'scale(1)',
-  },
-  actionsCardHover: {
-    transform: 'scale(1.01)',
-    boxShadow: '0 12px 35px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255, 215, 0, 0.2)',
-    borderColor: 'rgba(255, 215, 0, 0.3)',
-  },
-  actionsTitle: {
-    fontSize: '1.125rem',
-    fontWeight: '600',
-    color: '#FFD700',
-    marginBottom: '20px',
-    textAlign: 'center',
-    transition: 'all 0.3s ease',
-  },
-  actionsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-    gap: '12px',
-    className: 'actions-grid',
-  },
-  actionButton: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '16px 12px',
-    fontSize: '0.875rem',
-    fontWeight: '600',
-    border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    textAlign: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-    transform: 'scale(1) translateY(0)',
-    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)',
-  },
-  actionButtonHover: {
-    transform: 'scale(1.08) translateY(-3px)',
-    filter: 'brightness(1.1)',
-  },
-  actionButtonActive: {
-    transform: 'scale(0.95) translateY(1px)',
-  },
-  payMinimumButton: {
-    backgroundColor: '#B8860B',
-    backgroundImage: 'linear-gradient(135deg, #DAA520, #B8860B)',
-    color: '#0A0A0A',
-    border: '1px solid rgba(255, 215, 0, 0.3)',
-  },
-  payMinimumButtonHover: {
-    boxShadow: '0 8px 25px rgba(184, 134, 11, 0.4), 0 0 20px rgba(255, 215, 0, 0.3)',
-    backgroundColor: '#DAA520',
-  },
-  payFullButton: {
-    backgroundColor: '#2D5A3D',
-    backgroundImage: 'linear-gradient(135deg, #3D7C47, #2D5A3D)',
-    color: '#FFD700',
-    border: '1px solid rgba(255, 215, 0, 0.2)',
-  },
-  payFullButtonHover: {
-    boxShadow: '0 8px 25px rgba(45, 90, 61, 0.4), 0 0 20px rgba(255, 215, 0, 0.2)',
-    backgroundColor: '#3D7C47',
-  },
-  payCustomButton: {
-    backgroundColor: '#4A148C',
-    backgroundImage: 'linear-gradient(135deg, #6A1B9A, #4A148C)',
-    color: '#FFD700',
-    border: '1px solid rgba(255, 215, 0, 0.2)',
-  },
-  payCustomButtonHover: {
-    boxShadow: '0 8px 25px rgba(74, 20, 140, 0.4), 0 0 20px rgba(255, 215, 0, 0.2)',
-    backgroundColor: '#6A1B9A',
-  },
-  makeChargeButton: {
-    backgroundColor: '#8B0000',
-    backgroundImage: 'linear-gradient(135deg, #A52A2A, #8B0000)',
-    color: '#FFD700',
-    border: '1px solid rgba(255, 215, 0, 0.2)',
-  },
-  makeChargeButtonHover: {
-    boxShadow: '0 8px 25px rgba(139, 0, 0, 0.4), 0 0 20px rgba(255, 215, 0, 0.2)',
-    backgroundColor: '#A52A2A',
-  },
-  undoButton: {
-    backgroundColor: '#CC7A00',
-    backgroundImage: 'linear-gradient(135deg, #FF8C00, #CC7A00)',
-    color: '#0A0A0A',
-    border: '1px solid rgba(255, 215, 0, 0.3)',
-  },
-  undoButtonHover: {
-    boxShadow: '0 8px 25px rgba(204, 122, 0, 0.4), 0 0 20px rgba(255, 215, 0, 0.3)',
-    backgroundColor: '#FF8C00',
-  },
-  modalOverlay: {
-    marginTop: '20px',
-    padding: '20px',
-    backgroundColor: '#1A1A1A',
-    backgroundImage: 'linear-gradient(135deg, rgba(255, 215, 0, 0.08) 0%, transparent 60%)',
-    borderRadius: '12px',
-    border: '2px solid rgba(255, 215, 0, 0.3)',
-    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 215, 0, 0.1)',
-    animation: 'modalSlideIn 0.3s ease',
-    transform: 'scale(1)',
-    transition: 'transform 0.2s ease',
-  },
-  modalOverlayHover: {
-    transform: 'scale(1.01)',
-  },
-  modalTitle: {
-    fontSize: '1rem',
-    fontWeight: '600',
-    color: '#FFD700',
-    marginBottom: '8px',
-    transition: 'color 0.3s ease',
-  },
-  modalInfo: {
-    fontSize: '0.875rem',
-    color: '#B8860B',
-    marginBottom: '16px',
-    transition: 'color 0.3s ease',
-  },
-  modalActions: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  },
-  modalInputContainer: {
-    flex: 1,
-  },
-  modalButtons: {
-    display: 'flex',
-    gap: '12px',
-  },
-  confirmButton: {
-    flex: 1,
-    padding: '10px 16px',
-    fontSize: '0.875rem',
-    fontWeight: '600',
-    color: '#0A0A0A',
-    backgroundColor: '#FFD700',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    transform: 'scale(1)',
-  },
-  confirmButtonHover: {
-    transform: 'scale(1.05)',
-    backgroundColor: '#FFA500',
-    boxShadow: '0 6px 20px rgba(255, 215, 0, 0.4)',
-  },
-  cancelButton: {
-    flex: 1,
-    padding: '10px 16px',
-    fontSize: '0.875rem',
-    fontWeight: '600',
-    color: '#FFD700',
-    backgroundColor: '#2A2A2A',
-    border: '1px solid rgba(255, 215, 0, 0.2)',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    transform: 'scale(1)',
-  },
-  cancelButtonHover: {
-    transform: 'scale(1.05)',
-    backgroundColor: '#3A3A3A',
-    borderColor: 'rgba(255, 215, 0, 0.4)',
-    boxShadow: '0 6px 20px rgba(255, 215, 0, 0.2)',
-  },
-  chartsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '20px',
-    className: 'charts-grid',
-  },
-  chartCard: {
-    backgroundColor: '#1A1A1A',
-    backgroundImage: 'linear-gradient(135deg, rgba(255, 215, 0, 0.04) 0%, transparent 70%)',
-    padding: '24px',
-    borderRadius: '12px',
-    boxShadow: '0 6px 25px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 215, 0, 0.1)',
-    border: '1px solid rgba(255, 215, 0, 0.15)',
-    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-    transform: 'scale(1)',
-    cursor: 'pointer',
-  },
-  chartCardHover: {
-    transform: 'scale(1.02)',
-    boxShadow: '0 12px 35px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255, 215, 0, 0.2)',
-    borderColor: 'rgba(255, 215, 0, 0.3)',
-  },
-  chartTitle: {
-    fontSize: '1.125rem',
-    fontWeight: '600',
-    color: '#FFD700',
-    marginBottom: '20px',
-    transition: 'all 0.3s ease',
-  },
-  chartContainer: {
-    height: '300px',
-    transition: 'all 0.3s ease',
-  },
-  creditScoreContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px',
-  },
-  creditScoreBar: {
-    width: '100%',
-  },
-  creditScoreTrack: {
-    width: '100%',
-    height: '8px',
-    backgroundColor: '#2A2A2A',
-    borderRadius: '4px',
-    overflow: 'hidden',
-    boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.3)',
-  },
-  creditScoreProgress: {
-    height: '100%',
-    transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-    background: 'linear-gradient(90deg, #FF6B6B, #FFD700, #4ECDC4)',
-    boxShadow: '0 0 10px rgba(255, 215, 0, 0.5)',
-    
-  },
-  creditScoreLabels: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    marginTop: '8px',
-    fontSize: '0.75rem',
-    color: '#8B7355',
-    transition: 'color 0.3s ease',
-  },
-  creditScoreValue: {
-    textAlign: 'center',
-    transition: 'transform 0.3s ease',
-    cursor: 'pointer',
-  },
-  creditScoreValueHover: {
-    transform: 'scale(1.05)',
-  },
-  creditScoreNumber: {
-    fontSize: '2rem',
-    fontWeight: '700',
-    lineHeight: 1,
-    background: 'linear-gradient(135deg, #FFD700, #FFA500)',
-    WebkitBackgroundClip: 'text',
-    backgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    textShadow: '0 0 20px rgba(255, 215, 0, 0.3)',
-    transition: 'all 0.3s ease',
-  },
-  creditScoreLabel: {
-    fontSize: '0.875rem',
-    color: '#B8860B',
-    marginTop: '4px',
-    transition: 'color 0.3s ease',
-  },
-  creditTip: {
-    marginTop: '16px',
-    padding: '12px',
-    backgroundColor: 'rgba(139, 0, 0, 0.1)',
-    borderRadius: '8px',
-    fontSize: '0.875rem',
-    color: '#FFB347',
-    border: '1px solid rgba(255, 179, 71, 0.2)',
-    transition: 'all 0.3s ease',
-  },
-  resetContainer: {
-    textAlign: 'center',
-  },
-  resetButton: {
-    padding: '12px 24px',
-    fontSize: '0.875rem',
-    fontWeight: '600',
-    color: '#FFD700',
-    backgroundColor: '#2A2A2A',
-    border: '2px solid rgba(255, 215, 0, 0.3)',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    transform: 'scale(1)',
-  },
-  resetButtonHover: {
-    transform: 'scale(1.05)',
-    backgroundColor: '#3A3A3A',
-    borderColor: 'rgba(255, 215, 0, 0.5)',
-    boxShadow: '0 6px 20px rgba(255, 215, 0, 0.2)',
-  },
-  notification: {
-    position: 'fixed',
-    bottom: '20px',
-    right: '20px',
-    maxWidth: '400px',
-    padding: '16px 20px',
-    backgroundColor: '#1A1A1A',
-    backgroundImage: 'linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, transparent 60%)',
-    color: '#FFD700',
-    borderRadius: '8px',
-    boxShadow: '0 15px 35px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 215, 0, 0.2)',
-    border: '1px solid rgba(255, 215, 0, 0.3)',
-    zIndex: 1000,
-    transform: 'translateX(0) scale(1)',
-    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-    animation: 'slideInFromRight 0.5s ease',
-  },
-  notificationHover: {
-    transform: 'translateX(-5px) scale(1.02)',
-    boxShadow: '0 20px 45px rgba(0, 0, 0, 0.8), 0 0 0 2px rgba(255, 215, 0, 0.4)',
-  },
-  notificationText: {
-    margin: 0,
-    fontSize: '0.875rem',
-    lineHeight: 1.5,
-    transition: 'all 0.3s ease',
-  },
-}
+// Small analytics tile used across the right-hand panel
+const MetricTile = ({ label, value, tone = 'white', color, sub }) => {
+  const tones = {
+    white: 'text-white',
+    blue: 'text-sky-400',
+    red: 'text-red-400',
+    green: 'text-emerald-400',
+    orange: 'text-amber-400',
+    purple: 'text-violet-400',
+    gold: 'text-gold',
+  };
+  return (
+    <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-4">
+      <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-wider mb-1.5">{label}</div>
+      <div className={`font-display text-lg sm:text-xl font-bold ${color ? '' : tones[tone]}`} style={color ? { color } : undefined}>
+        {value}
+      </div>
+      {sub && <div className="text-gray-600 text-[11px] mt-1 leading-snug">{sub}</div>}
+    </div>
+  );
+};
+
+// Semicircular credit-score gauge (300–850)
+const ScoreGauge = ({ score, color, label }) => {
+  const pct = Math.max(0, Math.min(1, (score - 300) / 550));
+  const radius = 80;
+  const circ = Math.PI * radius; // half circle
+  const dash = circ * pct;
+  return (
+    <div className="flex flex-col items-center">
+      <svg viewBox="0 0 200 110" className="w-full max-w-[220px]">
+        <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="12" strokeLinecap="round" />
+        <path
+          d="M 20 100 A 80 80 0 0 1 180 100"
+          fill="none"
+          stroke={color}
+          strokeWidth="12"
+          strokeLinecap="round"
+          strokeDasharray={`${dash} ${circ}`}
+          style={{ transition: 'stroke-dasharray 0.6s cubic-bezier(0.22,1,0.36,1), stroke 0.4s' }}
+        />
+      </svg>
+      <div className="-mt-6 text-center">
+        <div className="font-display text-4xl font-bold" style={{ color }}>{score}</div>
+        <div className="text-gray-500 text-sm mt-0.5">{label}</div>
+      </div>
+    </div>
+  );
+};
 
 const CreditCardSimulator = () => {
   const [creditLimit, setCreditLimit] = useState('50000');
@@ -592,7 +85,7 @@ const CreditCardSimulator = () => {
   const [currentBalance, setCurrentBalance] = useState(0);
   const [currentSpending, setCurrentSpending] = useState(0);
   const [totalInterestPaid, setTotalInterestPaid] = useState(0);
-  const [interestDue,setInterestDue] = useState(0);
+  const [interestDue, setInterestDue] = useState(0);
   const [totalPaymentsMade, setTotalPaymentsMade] = useState(0);
   const [totalChargesMade, setTotalChargesMade] = useState(0);
   const [totalPenalties, setTotalPenalties] = useState(0);
@@ -607,13 +100,11 @@ const CreditCardSimulator = () => {
   const [billGenerated, setBillGenerated] = useState(false);
   const [currentBillAmount, setCurrentBillAmount] = useState(0);
   const [phase, setPhase] = useState('spending');
-  const [isMobile, setIsMobile] = useState(false);
-  
 
   const monthlyInterestRate = parseFloat(interestRate || 0) / 12 / 100;
   const totalOutstanding = currentBalance + currentSpending;
-  const minimumPayment = billGenerated && currentBillAmount > 0 
-    ? Math.max(currentBillAmount * (parseFloat(minimumPaymentPercent) / 100), 0) 
+  const minimumPayment = billGenerated && currentBillAmount > 0
+    ? Math.max(currentBillAmount * (parseFloat(minimumPaymentPercent) / 100), 0)
     : Math.max(totalOutstanding * (parseFloat(minimumPaymentPercent) / 100), 0);
   const availableCredit = parseFloat(creditLimit || 0) - totalOutstanding;
   const utilizationRatio = creditLimit > 0 ? (totalOutstanding / parseFloat(creditLimit)) * 100 : 0;
@@ -638,16 +129,6 @@ const CreditCardSimulator = () => {
     setGameStateHistory(prev => [...prev, currentState]);
   };
 
-   useEffect(() => {
-        const checkMobile = () => {
-          setIsMobile(window.innerWidth <= 768);
-        };
-        
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
-      }, []);
-
   const undoLastAction = () => {
     if (gameStateHistory.length === 0) {
       setNotification('No actions to undo!');
@@ -655,7 +136,7 @@ const CreditCardSimulator = () => {
     }
 
     const lastState = gameStateHistory[gameStateHistory.length - 1];
-    
+
     setCurrentMonth(lastState.currentMonth);
     setCurrentBalance(lastState.currentBalance);
     setCurrentSpending(lastState.currentSpending);
@@ -670,7 +151,7 @@ const CreditCardSimulator = () => {
     setBillGenerated(lastState.billGenerated);
     setCurrentBillAmount(lastState.currentBillAmount);
     setPhase(lastState.phase);
-    
+
     setGameStateHistory(prev => prev.slice(0, -1));
     setNotification(`Last action undone! Back to Month ${lastState.currentMonth}.`);
   };
@@ -684,7 +165,7 @@ const CreditCardSimulator = () => {
     const limit = parseFloat(creditLimit);
     const rate = parseFloat(interestRate);
     const minPercent = parseFloat(minimumPaymentPercent);
-    
+
     if (limit <= 0 || rate < 0 || minPercent <= 0) {
       setNotification('Please enter valid positive values');
       return;
@@ -707,7 +188,7 @@ const CreditCardSimulator = () => {
     setCurrentBillAmount(0);
     setPhase('spending');
     setNotification('Credit card simulation started! Start by making purchases during your spending phase.');
-    
+
     const initialHistory = [{ month: 0, balance: 0, creditScore: 700 }];
     setBalanceHistory(initialHistory);
     setPaymentHistory([]);
@@ -750,92 +231,88 @@ const CreditCardSimulator = () => {
 
     // Only calculate interest if there's a previous outstanding balance
     const lastState = gameStateHistory[gameStateHistory.length - 1];
-    let minus=0
-    if(lastState.totalPaymentsMade==totalPaymentsMade){
-      minus=500
+    let minus = 0;
+    if (lastState.totalPaymentsMade == totalPaymentsMade) {
+      minus = 500;
     }
-    console.log(lastState)
-    const interestCharge = currentBalance > 0 ? (currentBalance-minus) * monthlyInterestRate : 0;
+    const interestCharge = currentBalance > 0 ? (currentBalance - minus) * monthlyInterestRate : 0;
     const totalBill = currentBalance + interestCharge + currentSpending;
-    
+
     setCurrentBillAmount(totalBill);
-    
-    
+
     setBillGenerated(true);
     setPhase('payment');
-    
-    setPaymentHistory(prev => [...prev, { 
-      month: currentMonth, 
-      action: 'Bill Generated', 
+
+    setPaymentHistory(prev => [...prev, {
+      month: currentMonth,
+      action: 'Bill Generated',
       amount: totalBill,
       balance: totalBill,
       interest: interestCharge
     }]);
-    
+
     setNotification(`Bill generated for Month ${currentMonth}! Total Due: ₹${Math.round(totalBill)}${interestCharge > 0 ? `, Interest: ₹${Math.round(interestCharge)}` : ''}`);
   };
 
-
   const makePayment = (paymentAmount, paymentType) => {
-  if (!billGenerated || currentBillAmount <= 0) {
-    setNotification('No bill to pay! Generate bill first.');
-    return;
-  }
+    if (!billGenerated || currentBillAmount <= 0) {
+      setNotification('No bill to pay! Generate bill first.');
+      return;
+    }
 
-  saveCurrentState();
-  
-  const actualPayment = Math.min(paymentAmount, currentBillAmount);
-  
-  // Correct interest tracking
-  setTotalInterestPaid(prev => prev + interestDue);
-  
-  const remainingBalance = currentBillAmount - actualPayment;
-  
-  // Carry forward unpaid interest
-  const interest=remainingBalance > 0 ? remainingBalance * monthlyInterestRate : 0;
-  setInterestDue(remainingBalance > 0 ? remainingBalance * monthlyInterestRate : 0);    
-  
-  setCurrentBalance(remainingBalance);
-  setCurrentSpending(0);
-  setCurrentBillAmount(prev=>prev+interest-actualPayment);
-  setTotalPaymentsMade(prev => prev + actualPayment);
-  setBillGenerated(false);
-  setPhase('spending');
-  
-  // Credit score update
-  if (paymentType === 'full') {
-    setCreditScore(prev => Math.min(850, prev + 5));
-  } else if (paymentType === 'minimum') {
-    setCreditScore(prev => Math.max(300, prev - 2));
-  } else {
-    setCreditScore(prev => Math.min(850, prev + 2));
-  }
-  
-  const newHistoryPoint = { 
-    month: currentMonth, 
-    balance: remainingBalance, 
-    creditScore
+    saveCurrentState();
+
+    const actualPayment = Math.min(paymentAmount, currentBillAmount);
+
+    // Correct interest tracking
+    setTotalInterestPaid(prev => prev + interestDue);
+
+    const remainingBalance = currentBillAmount - actualPayment;
+
+    // Carry forward unpaid interest
+    const interest = remainingBalance > 0 ? remainingBalance * monthlyInterestRate : 0;
+    setInterestDue(remainingBalance > 0 ? remainingBalance * monthlyInterestRate : 0);
+
+    setCurrentBalance(remainingBalance);
+    setCurrentSpending(0);
+    setCurrentBillAmount(prev => prev + interest - actualPayment);
+    setTotalPaymentsMade(prev => prev + actualPayment);
+    setBillGenerated(false);
+    setPhase('spending');
+
+    // Credit score update
+    if (paymentType === 'full') {
+      setCreditScore(prev => Math.min(850, prev + 5));
+    } else if (paymentType === 'minimum') {
+      setCreditScore(prev => Math.max(300, prev - 2));
+    } else {
+      setCreditScore(prev => Math.min(850, prev + 2));
+    }
+
+    const newHistoryPoint = {
+      month: currentMonth,
+      balance: remainingBalance,
+      creditScore
+    };
+    setBalanceHistory(prev => [...prev, newHistoryPoint]);
+
+    setPaymentHistory(prev => [...prev, {
+      month: currentMonth,
+      action: `${paymentType} Payment`,
+      amount: actualPayment,
+      balance: remainingBalance
+    }]);
+
+    const nextMonth = currentMonth + 1;
+    setCurrentMonth(nextMonth);
+
+    if (remainingBalance > 0) {
+      setNotification(`Payment of ₹${Math.round(actualPayment)} made! Remaining balance: ₹${Math.round(remainingBalance)}. Now in Month ${nextMonth} spending phase. Interest will accrue on unpaid balance.`);
+    } else {
+      setNotification(`Payment of ₹${Math.round(actualPayment)} made! Balance cleared! Now in Month ${nextMonth} spending phase.`);
+    }
   };
-  setBalanceHistory(prev => [...prev, newHistoryPoint]);
-  
-  setPaymentHistory(prev => [...prev, { 
-    month: currentMonth, 
-    action: `${paymentType} Payment`, 
-    amount: actualPayment,
-    balance: remainingBalance 
-  }]);
-  
-  const nextMonth = currentMonth + 1;
-  setCurrentMonth(nextMonth);
-  
-  if (remainingBalance > 0) {
-    setNotification(`Payment of ₹${Math.round(actualPayment)} made! Remaining balance: ₹${Math.round(remainingBalance)}. Now in Month ${nextMonth} spending phase. Interest will accrue on unpaid balance.`);
-  } else {
-    setNotification(`Payment of ₹${Math.round(actualPayment)} made! Balance cleared! Now in Month ${nextMonth} spending phase.`);
-  }
-};
 
-  
   const makeCharge = () => {
     if (phase !== 'spending') {
       setNotification('Cannot make purchases during payment phase! Complete your payment first.');
@@ -848,7 +325,7 @@ const CreditCardSimulator = () => {
     }
 
     const chargeAmount = parseFloat(customAmount);
-    
+
     if (chargeAmount > availableCredit) {
       setNotification(`Purchase declined! Available credit: ₹${Math.round(availableCredit)}`);
       return;
@@ -858,73 +335,70 @@ const CreditCardSimulator = () => {
 
     const newSpending = currentSpending + chargeAmount;
     const newTotalOutstanding = currentBalance + newSpending;
-    
+
     setCurrentSpending(newSpending);
     setTotalChargesMade(prev => prev + chargeAmount);
-    
+
     const newUtilization = (newTotalOutstanding / parseFloat(creditLimit)) * 100;
     if (newUtilization > 80) {
       setCreditScore(prev => Math.max(300, prev - 8));
     } else if (newUtilization > 50) {
       setCreditScore(prev => Math.max(300, prev - 3));
     }
-    
-    setPaymentHistory(prev => [...prev, { 
-      month: currentMonth, 
-      action: 'Purchase Made', 
+
+    setPaymentHistory(prev => [...prev, {
+      month: currentMonth,
+      action: 'Purchase Made',
       amount: -chargeAmount,
-      balance: newTotalOutstanding 
+      balance: newTotalOutstanding
     }]);
-    
+
     setCustomAmount('');
     setShowChargeModal(false);
     setNotification(`Purchase of ₹${Math.round(chargeAmount)} made! Current spending: ₹${Math.round(newSpending)}, Total outstanding: ₹${Math.round(newTotalOutstanding)}`);
   };
 
-
   const skipPayment = () => {
-  if (!billGenerated || currentBillAmount <= 0) {
-    setNotification('No bill to skip payment on! Generate bill first.');
-    return;
-  }
+    if (!billGenerated || currentBillAmount <= 0) {
+      setNotification('No bill to skip payment on! Generate bill first.');
+      return;
+    }
 
-  saveCurrentState();
+    saveCurrentState();
 
-  const latePenalty = 500;
-  const interestOnBill = currentBillAmount * monthlyInterestRate;
-  const newBalance = currentBillAmount;
+    const latePenalty = 500;
+    const interestOnBill = currentBillAmount * monthlyInterestRate;
+    const newBalance = currentBillAmount;
 
-  setCurrentBalance(newBalance+latePenalty);
-  setInterestDue(prev => prev + interestOnBill);
-  setCurrentSpending(0);
-  setCurrentBillAmount(prev=>prev+interestOnBill+latePenalty);
-  setTotalPenalties(prev => prev + latePenalty);
-  setBillGenerated(false);
-  setPhase('spending');
-  
-  const newCreditScore = Math.max(300, creditScore - 25);
-  setCreditScore(newCreditScore);
-  
-  const newHistoryPoint = { 
-    month: currentMonth, 
-    balance: newBalance + interestOnBill, 
-    creditScore: newCreditScore
+    setCurrentBalance(newBalance + latePenalty);
+    setInterestDue(prev => prev + interestOnBill);
+    setCurrentSpending(0);
+    setCurrentBillAmount(prev => prev + interestOnBill + latePenalty);
+    setTotalPenalties(prev => prev + latePenalty);
+    setBillGenerated(false);
+    setPhase('spending');
+
+    const newCreditScore = Math.max(300, creditScore - 25);
+    setCreditScore(newCreditScore);
+
+    const newHistoryPoint = {
+      month: currentMonth,
+      balance: newBalance + interestOnBill,
+      creditScore: newCreditScore
+    };
+    setBalanceHistory(prev => [...prev, newHistoryPoint]);
+    setPaymentHistory(prev => [...prev, {
+      month: currentMonth,
+      action: 'Payment Missed (Penalty + Interest)',
+      amount: -(latePenalty + interestOnBill),
+      balance: newBalance + interestOnBill
+    }]);
+
+    const nextMonth = currentMonth + 1;
+    setCurrentMonth(nextMonth);
+
+    setNotification(`Payment missed! Penalty: ₹${Math.round(latePenalty)}, Additional interest: ₹${Math.round(interestOnBill)}. New balance: ₹${Math.round(newBalance + interestOnBill)}. Now in Month ${nextMonth}.`);
   };
-  setBalanceHistory(prev => [...prev, newHistoryPoint]);
-  setPaymentHistory(prev => [...prev, { 
-    month: currentMonth, 
-    action: 'Payment Missed (Penalty + Interest)', 
-    amount: -(latePenalty + interestOnBill),
-    balance: newBalance + interestOnBill 
-  }]);
-  
-  const nextMonth = currentMonth + 1;
-  setCurrentMonth(nextMonth);
-  
-  setNotification(`Payment missed! Penalty: ₹${Math.round(latePenalty)}, Additional interest: ₹${Math.round(interestOnBill)}. New balance: ₹${Math.round(newBalance + interestOnBill)}. Now in Month ${nextMonth}.`);
-};
-
-
 
   const getCreditScoreColor = (score) => {
     if (score >= 750) return '#10B981';
@@ -957,472 +431,343 @@ const CreditCardSimulator = () => {
     }
   }, [notification]);
 
+  const inputClass =
+    'w-full px-4 py-3 rounded-xl bg-black/40 border border-white/[0.12] text-white placeholder-gray-600 text-[15px] outline-none transition-all duration-200 focus:border-gold/60 focus:ring-2 focus:ring-gold/15';
+
+  // ---- Action button styles (used in the control rail) ----
+  const primaryAction =
+    'w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl text-sm font-bold text-black bg-gradient-to-br from-gold to-gold-dark transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(255,215,0,0.35)] cursor-pointer';
+  const ghostAction =
+    'w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl text-sm font-bold transition-all duration-300 hover:-translate-y-0.5 cursor-pointer border';
+
   return (
-    <div style={styles.container}>
-      <div style={styles.maxWidth}>
-        <div style={styles.header}>
-          <h1 style={styles.title}>Credit Card Simulator</h1>
-          <p style={styles.subtitle}>Learn how credit cards, interest, and payments work with proper billing cycles</p>
+    <div className="relative min-h-screen bg-[#0a0a0a] text-white font-sans overflow-x-hidden">
+      {/* Ambient background */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gold/[0.04] rounded-full blur-[180px]" />
+        <div className="absolute bottom-[5%] right-[-5%] w-[400px] h-[400px] bg-gold-dark/[0.03] rounded-full blur-[140px]" />
+      </div>
+
+      {/* Slim workspace toolbar */}
+      <header className="sticky top-0 z-40 bg-black/70 backdrop-blur-md border-b border-white/[0.06]">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
+          <Link to="/creditOrLoan" className="inline-flex items-center gap-2 text-gray-400 hover:text-gold text-sm font-medium transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Simulators</span>
+          </Link>
+
+          <div className="flex items-center gap-2.5">
+            <span className="w-8 h-8 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center text-gold">
+              <CreditCard className="w-4 h-4" />
+            </span>
+            <span className="font-display text-base font-bold text-white">Credit Card Simulator</span>
+          </div>
+
+          {isSimulationStarted ? (
+            <button
+              onClick={resetSimulation}
+              className="inline-flex items-center gap-1.5 text-gray-400 hover:text-red-400 text-sm font-medium transition-colors cursor-pointer"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span className="hidden sm:inline">Reset</span>
+            </button>
+          ) : (
+            <span className="w-16" />
+          )}
         </div>
+      </header>
 
+      <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 py-8 sm:py-10">
         {!isSimulationStarted ? (
-          <div style={{width:"100%",display:"flex",justifyContent:"center",alignItems:"center"}}>
-          <div style={styles.setupCard}>
-            <h2 style={styles.setupTitle}>Setup Your Credit Card</h2>
-            
-            <div style={styles.formSpace}>
-              <div>
-                <label style={styles.label}>Credit Limit</label>
-                <div style={styles.inputContainer}>
-                  <span style={styles.currencySymbol}>₹</span>
-                  <input
-                    type="number"
-                    value={creditLimit}
-                    onChange={(e) => setCreditLimit(e.target.value)}
-                    style={{...styles.input, ...styles.inputWithLeftIcon}}
-                    placeholder="50000"
-                    onFocus={(e) => e.target.style.borderColor = '#FFA500'}
-                    onBlur={(e) => e.target.style.borderColor = '#D1D5DB'}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label style={styles.label}>Annual Interest Rate (APR)</label>
-                <div style={styles.inputContainer}>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={interestRate}
-                    onChange={(e) => setInterestRate(e.target.value)}
-                    style={{...styles.input, ...styles.inputWithRightIcon}}
-                    placeholder="18"
-                    onFocus={(e) => e.target.style.borderColor = '#FFA500'}
-                    onBlur={(e) => e.target.style.borderColor = '#D1D5DB'}
-                  />
-                  <span style={styles.percentSymbol}>%</span>
-                </div>
-              </div>
-
-              <div>
-                <label style={styles.label}>Minimum Payment Percentage</label>
-                <div style={styles.inputContainer}>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={minimumPaymentPercent}
-                    onChange={(e) => setMinimumPaymentPercent(e.target.value)}
-                    style={{...styles.input, ...styles.inputWithRightIcon}}
-                    placeholder="5"
-                    onFocus={(e) => e.target.style.borderColor = '#FFA500'}
-                    onBlur={(e) => e.target.style.borderColor = '#D1D5DB'}
-                  />
-                  <span style={styles.percentSymbol}>%</span>
-                </div>
-              </div>
-
-              <button
-                onClick={startSimulation}
-                style={styles.startButton}
-                onMouseEnter={(e) => Object.assign(e.currentTarget.style, styles.startButtonHover)}
-                onMouseLeave={(e) => Object.assign(e.currentTarget.style, styles.startButton)}
-              >
-                Start Simulation
-              </button>
+          /* ---------------- SETUP ---------------- */
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-[1fr_1.1fr] gap-8 items-center pt-6"
+          >
+            {/* Explainer */}
+            <div>
+              <span className="text-gold text-xs font-bold uppercase tracking-widest">Set the terms</span>
+              <h1 className="font-display text-3xl sm:text-4xl font-bold mt-3 mb-4 leading-tight">
+                Configure your card,<br />then live the cycle.
+              </h1>
+              <p className="text-gray-400 text-[15px] leading-relaxed mb-6">
+                Pick a limit, an APR, and a minimum-payment rate. You'll spend, get a statement,
+                and decide how to pay — watching interest and your score move in real time.
+              </p>
+              <ul className="flex flex-col gap-3">
+                {[
+                  ['Spend', 'Make purchases up to your limit'],
+                  ['Bill', 'Generate a statement with interest'],
+                  ['Pay', 'Minimum, full, custom — or skip'],
+                ].map(([k, v], i) => (
+                  <li key={k} className="flex items-center gap-3 text-sm">
+                    <span className="w-7 h-7 rounded-full bg-gold/10 border border-gold/20 text-gold flex items-center justify-center font-bold text-xs flex-shrink-0">{i + 1}</span>
+                    <span className="text-white font-semibold">{k}</span>
+                    <span className="text-gray-500">— {v}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-          </div>
-          </div>
+
+            {/* Form */}
+            <div className="bg-white/[0.03] border border-white/[0.08] rounded-3xl p-7 sm:p-8 shadow-[0_30px_80px_rgba(0,0,0,0.5)]">
+              <div className="flex flex-col gap-5">
+                <div>
+                  <label htmlFor="credit-limit" className="block text-gray-300 text-sm font-medium mb-1.5">Credit Limit</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium pointer-events-none">₹</span>
+                    <input id="credit-limit" type="number" value={creditLimit} onChange={(e) => setCreditLimit(e.target.value)} className={`${inputClass} pl-9`} placeholder="50000" />
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="apr" className="block text-gray-300 text-sm font-medium mb-1.5">Annual Interest Rate (APR)</label>
+                  <div className="relative">
+                    <input id="apr" type="number" step="0.1" value={interestRate} onChange={(e) => setInterestRate(e.target.value)} className={`${inputClass} pr-9`} placeholder="18" />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium pointer-events-none">%</span>
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="min-payment" className="block text-gray-300 text-sm font-medium mb-1.5">Minimum Payment Percentage</label>
+                  <div className="relative">
+                    <input id="min-payment" type="number" step="0.1" value={minimumPaymentPercent} onChange={(e) => setMinimumPaymentPercent(e.target.value)} className={`${inputClass} pr-9`} placeholder="5" />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium pointer-events-none">%</span>
+                  </div>
+                </div>
+                <button onClick={startSimulation} className="mt-2 w-full px-6 py-3.5 rounded-full font-bold text-sm uppercase tracking-wider text-black bg-gradient-to-br from-gold to-gold-dark shadow-[0_8px_30px_rgba(255,215,0,0.25)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_40px_rgba(255,215,0,0.4)] cursor-pointer">
+                  Start Simulation
+                </button>
+              </div>
+            </div>
+          </motion.div>
         ) : (
-          <div style={styles.dashboard}>
-            <div style={{...styles.cardsGrid,gridTemplateColumns: isMobile? 'repeat(auto-fit, minmax(150px, 1fr))': 'repeat(auto-fit, minmax(200px, 1fr))',}}>
-              <div style={styles.summaryCard}>
-                <h3 style={styles.cardTitle}>Credit Limit</h3>
-                <p style={{...styles.cardValue, ...styles.blueValue}}>₹{parseFloat(creditLimit).toLocaleString()}</p>
-              </div>
-              
-              <div style={styles.summaryCard}>
-                <h3 style={styles.cardTitle}>Outstanding Balance</h3>
-                <p style={{...styles.cardValue, ...styles.redValue}}>₹{Math.round(currentBalance).toLocaleString()}</p>
-                <p style={styles.smallText}>From previous bills</p>
-              </div>
-              
-              <div style={styles.summaryCard}>
-                <h3 style={styles.cardTitle}>Current Spending</h3>
-                <p style={{...styles.cardValue, ...styles.orangeValue}}>₹{Math.round(currentSpending).toLocaleString()}</p>
-                <p style={styles.smallText}>This billing cycle</p>
-              </div>         
-              
-              <div style={styles.summaryCard}>
-                <h3 style={styles.cardTitle}>Available Credit</h3>
-                <p style={{...styles.cardValue, ...styles.greenValue}}>₹{Math.round(availableCredit).toLocaleString()}</p>
-                <p style={styles.smallText}>Remaining limit</p>
-              </div>  
-
-              {!billGenerated && (
-                <div style={styles.summaryCard}>
-                  <h3 style={styles.cardTitle}>Current Bill Amount</h3>
-                  <p style={{...styles.cardValue, color: '#EF4444'}}>₹{Math.round(currentBillAmount).toLocaleString()}</p>
-                  <p style={styles.smallText}>₹{Math.round(interestDue).toLocaleString()} (Interset)</p>
+          /* ---------------- COCKPIT DASHBOARD ---------------- */
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6"
+          >
+            {/* ===== LEFT: CONTROL RAIL ===== */}
+            <aside className="lg:sticky lg:top-24 lg:self-start flex flex-col gap-5">
+              {/* Phase + month */}
+              <div className="bg-white/[0.03] border border-white/[0.08] rounded-3xl p-6">
+                <div className="flex items-center justify-between mb-5">
+                  <div>
+                    <div className="text-gray-500 text-[11px] font-semibold uppercase tracking-wider">Billing cycle</div>
+                    <div className="font-display text-2xl font-bold text-white mt-0.5">Month {currentMonth}</div>
+                  </div>
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wide ${
+                    phase === 'spending'
+                      ? 'bg-amber-400/10 text-amber-400 border border-amber-400/25'
+                      : 'bg-violet-400/10 text-violet-300 border border-violet-400/25'
+                  }`}>
+                    {phase === 'spending' ? 'Spending' : 'Payment'}
+                  </span>
                 </div>
-              )}  
-              
-              {billGenerated && (
-                <div style={styles.summaryCard}>
-                  <h3 style={styles.cardTitle}>Current Bill Amount</h3>
-                  <p style={{...styles.cardValue, color: '#EF4444'}}>₹{Math.round(currentBillAmount).toLocaleString()}</p>
-                  <p style={styles.smallText}>₹{Math.round(interestDue).toLocaleString()} (Interset)</p>
+
+                {/* Hero stat: whatever matters now */}
+                {phase === 'payment' && billGenerated ? (
+                  <div className="rounded-2xl bg-red-500/[0.06] border border-red-500/20 p-5">
+                    <div className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">Total due now</div>
+                    <div className="font-display text-4xl font-bold text-red-400">₹{Math.round(currentBillAmount).toLocaleString()}</div>
+                    <div className="text-gray-500 text-xs mt-1.5">Minimum ₹{Math.round(minimumPayment).toLocaleString()} · {minimumPaymentPercent}% of bill</div>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl bg-white/[0.03] border border-white/[0.07] p-5">
+                    <div className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">Total outstanding</div>
+                    <div className="font-display text-4xl font-bold text-white">₹{Math.round(totalOutstanding).toLocaleString()}</div>
+                    <div className="text-gray-500 text-xs mt-1.5">₹{Math.round(availableCredit).toLocaleString()} available of ₹{parseFloat(creditLimit).toLocaleString()}</div>
+                    {/* utilization bar */}
+                    <div className="mt-3 h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(100, utilizationRatio)}%`, backgroundColor: getUtilizationColor(utilizationRatio) }} />
+                    </div>
+                    <div className="text-[11px] mt-1.5" style={{ color: getUtilizationColor(utilizationRatio) }}>{utilizationRatio.toFixed(1)}% utilization</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="bg-white/[0.03] border border-white/[0.08] rounded-3xl p-6">
+                <div className="text-gray-500 text-[11px] font-semibold uppercase tracking-wider mb-4">
+                  {phase === 'spending' ? 'What will you do?' : 'How will you pay?'}
                 </div>
-              )}
-
-              <div style={styles.summaryCard}>
-                <h3 style={styles.cardTitle}>Minimum Payment</h3>
-                <p style={{...styles.cardValue, ...styles.orangeValue}}>₹{Math.round(minimumPayment).toLocaleString()}</p>
-                <p style={styles.smallText}>{minimumPaymentPercent}% of bill amount</p>
-              </div>
-
-              <div style={styles.summaryCard}>
-                <h3 style={styles.cardTitle}>Utilization Ratio</h3>
-                <p style={{...styles.cardValue, color: getUtilizationColor(utilizationRatio)}}>{utilizationRatio.toFixed(1)}%</p>
-                <p style={styles.smallText}>Keep under 30% for good credit</p>
-              </div>
-
-              <div style={styles.summaryCard}>
-                <h3 style={styles.cardTitle}>Total Interest Paid</h3>
-                <p style={{...styles.cardValue, color: '#EF4444'}}>₹{Math.round(totalInterestPaid).toLocaleString()}</p>
-                <p style={styles.smallText}>Already charged</p>
-              </div>              
-
-              <div style={styles.summaryCard}>
-                <h3 style={styles.cardTitle}>Total Penalties</h3>
-                <p style={{...styles.cardValue, color: '#EF4444'}}>₹{Math.round(totalPenalties).toLocaleString()}</p>
-                <p style={styles.smallText}>Late payment fees</p>
-              </div>
-
-              <div style={styles.summaryCard}>
-                <h3 style={styles.cardTitle}>Total Payments Made</h3>
-                <p style={{...styles.cardValue, ...styles.greenValue}}>₹{Math.round(totalPaymentsMade).toLocaleString()}</p>
-              </div>
-            </div>
-
-            <div style={styles.timelineCard}>
-              <h3 style={styles.timelineTitle}>Current Status</h3>
-              <div style={styles.currentMonth}>
-                Month: <span style={{fontWeight: '600', color: '#DC2626'}}>{currentMonth}</span> | 
-                Phase: <span style={{fontWeight: '600', color: phase === 'spending' ? '#F59E0B' : '#7C3AED'}}>{phase === 'spending' ? 'Spending' : 'Payment'}</span> | 
-                Outstanding: <span style={{fontWeight: '600', color: '#DC2626'}}>₹{Math.round(totalOutstanding)}</span> | 
-                Credit Score: <span style={{fontWeight: '600', color: getCreditScoreColor(creditScore)}}>{creditScore}</span>
-              </div>
-              {phase === 'spending' && (
-                <div style={{...styles.currentMonth, marginTop: '8px', fontSize: '0.75rem'}}>
-                  {currentSpending > 0 || currentBalance > 0 ? 'You can continue spending or generate your bill' : 'Start by making purchases with your credit card'}
-                </div>
-              )}
-              {phase === 'payment' && (
-                <div style={{...styles.currentMonth, marginTop: '8px', fontSize: '0.75rem'}}>
-                  Bill generated! Choose your payment option below
-                </div>
-              )}
-            </div>
-
-            <div style={styles.actionsCard}>
-              <h3 style={styles.actionsTitle}>
-                {phase === 'spending' ? `Spending Phase - Month ${currentMonth}` : `Payment Phase - Month ${currentMonth}`}
-              </h3>
-              <div style={styles.actionsGrid}>
-                {phase === 'spending' && (
-                  <>
-                    <button
-                      onClick={() => setShowChargeModal(true)}
-                      style={{...styles.actionButton, ...styles.makeChargeButton}}
-                      onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
-                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                    >
-                      <span>💳</span>
-                      <span>Make Purchase</span>
-                    </button>
-                    
-                    {(currentSpending > 0 || currentBalance > 0) && (
-                      <button
-                        onClick={generateBill}
-                        style={{...styles.actionButton, backgroundColor: '#7C3AED', color: 'white'}}
-                        onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
-                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                      >
-                        <span>📋</span>
-                        <span>Generate Bill</span>
+                <div className="flex flex-col gap-2.5">
+                  {phase === 'spending' && (
+                    <>
+                      <button onClick={() => setShowChargeModal(true)} className={primaryAction}>
+                        <ShoppingBag className="w-4 h-4" /> Make a purchase
                       </button>
-                    )}
-                  </>
-                )}
+                      {(currentSpending > 0 || currentBalance > 0) && (
+                        <button onClick={generateBill} className={`${ghostAction} bg-white/[0.03] border-violet-500/30 text-violet-300 hover:bg-violet-500/10 hover:border-violet-500/60`}>
+                          <ReceiptText className="w-4 h-4" /> Generate bill
+                        </button>
+                      )}
+                    </>
+                  )}
 
-                {phase === 'payment' && billGenerated && (
-                  <>
-                    <button
-                      onClick={() => makePayment(minimumPayment, 'minimum')}
-                      style={{...styles.actionButton, ...styles.payMinimumButton}}
-                      onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
-                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                    >
-                      <span>💰</span>
-                      <span>Pay Minimum (₹{Math.round(minimumPayment)})</span>
-                    </button>
-                    
-                    <button
-                      onClick={() => makePayment(currentBillAmount, 'full')}
-                      style={{...styles.actionButton, ...styles.payFullButton}}
-                      onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
-                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                    >
-                      <span>✅</span>
-                      <span>Pay Full (₹{Math.round(currentBillAmount)})</span>
-                    </button>
-                    
-                    <button
-                      onClick={() => setShowCustomPaymentModal(true)}
-                      style={{...styles.actionButton, ...styles.payCustomButton}}
-                      onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
-                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                    >
-                      <span>💵</span>
-                      <span>Pay Custom Amount</span>
-                    </button>
-                    
-                    <button
-                      onClick={skipPayment}
-                      style={{...styles.actionButton, backgroundColor: '#EF4444', color: 'white'}}
-                      onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
-                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                    >
-                      <span>⚠️</span>
-                      <span>Skip Payment</span>
-                    </button>
-                  </>
-                )}
+                  {phase === 'payment' && billGenerated && (
+                    <>
+                      <button onClick={() => makePayment(currentBillAmount, 'full')} className={primaryAction}>
+                        <CheckCircle2 className="w-4 h-4" /> Pay full (₹{Math.round(currentBillAmount).toLocaleString()})
+                      </button>
+                      <button onClick={() => makePayment(minimumPayment, 'minimum')} className={`${ghostAction} bg-white/[0.03] border-amber-500/30 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/60`}>
+                        <Coins className="w-4 h-4" /> Pay minimum (₹{Math.round(minimumPayment).toLocaleString()})
+                      </button>
+                      <button onClick={() => setShowCustomPaymentModal(true)} className={`${ghostAction} bg-white/[0.03] border-white/[0.12] text-gray-200 hover:bg-white/[0.06]`}>
+                        <Banknote className="w-4 h-4" /> Pay custom amount
+                      </button>
+                      <button onClick={skipPayment} className={`${ghostAction} bg-white/[0.03] border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/60`}>
+                        <AlertTriangle className="w-4 h-4" /> Skip payment
+                      </button>
+                    </>
+                  )}
 
-                {gameStateHistory.length > 0 && (
-                  <button
-                    onClick={undoLastAction}
-                    style={{...styles.actionButton, ...styles.undoButton}}
-                    onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
-                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                  >
-                    <span>↩️</span>
-                    <span>Undo Last Action</span>
-                  </button>
-                )}
-              </div>
+                  {gameStateHistory.length > 0 && (
+                    <button onClick={undoLastAction} className="mt-1 w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-semibold text-gray-400 hover:text-white border border-white/[0.1] hover:bg-white/[0.04] transition-all duration-300 cursor-pointer">
+                      <Undo2 className="w-4 h-4" /> Undo last action
+                    </button>
+                  )}
+                </div>
 
-              {showCustomPaymentModal && (
-                <div style={styles.modalOverlay}>
-                  <h4 style={styles.modalTitle}>Enter Custom Payment Amount</h4>
-                  <p style={styles.modalInfo}>Pay any amount between ₹1 and ₹{Math.round(currentBillAmount)}</p>
-                  <div style={styles.modalActions}>
-                    <div style={styles.modalInputContainer}>
-                      <div style={styles.inputContainer}>
-                        <span style={styles.currencySymbol}>₹</span>
-                        <input
-                          type="number"
-                          value={customAmount}
-                          onChange={(e) => setCustomAmount(e.target.value)}
-                          style={{...styles.input, ...styles.inputWithLeftIcon, borderColor: '#C084FC'}}
-                          placeholder="Enter payment amount"
-                          min="1"
-                          max={currentBillAmount}
-                          onFocus={(e) => e.target.style.borderColor = '#7C3AED'}
-                          onBlur={(e) => e.target.style.borderColor = '#C084FC'}
-                        />
+                {/* Inline purchase panel */}
+                <AnimatePresence>
+                  {showChargeModal && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }} className="overflow-hidden">
+                      <div className="mt-4 p-4 rounded-2xl bg-gold/[0.04] border border-gold/25">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-white font-bold text-sm">Make a purchase</h4>
+                          <button onClick={() => { setShowChargeModal(false); setCustomAmount(''); }} className="text-gray-500 hover:text-white cursor-pointer"><X className="w-4 h-4" /></button>
+                        </div>
+                        <p className="text-gray-500 text-xs mb-3">Available credit: ₹{Math.round(availableCredit).toLocaleString()}</p>
+                        <div className="relative mb-3">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium pointer-events-none">₹</span>
+                          <input type="number" value={customAmount} onChange={(e) => setCustomAmount(e.target.value)} className={`${inputClass} pl-9`} placeholder="Amount" min="1" max={availableCredit} />
+                        </div>
+                        <button onClick={makeCharge} className={primaryAction}>Confirm purchase</button>
                       </div>
-                    </div>
-                    <div style={styles.modalButtons}>
-                      <button
-                        onClick={() => {
-                          const amount = parseFloat(customAmount);
-                          if (amount > 0 && amount <= currentBillAmount) {
-                            makePayment(amount, 'custom');
-                            setShowCustomPaymentModal(false);
-                            setCustomAmount('');
-                          } else {
-                            setNotification('Please enter a valid payment amount');
-                          }
-                        }}
-                        style={styles.confirmButton}
-                        onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
-                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                        
-                      >
-                        Make Payment
-                      </button>
-                      <button
-                        onClick={() => {
-                          setShowCustomPaymentModal(false);
-                          setCustomAmount('');
-                        }}
-                        style={styles.cancelButton}
-                        onMouseOver={(e) => e.target.style.backgroundColor = 'black'}
-                        onMouseOut={(e) => Object.assign(e.currentTarget.style, styles.cancelButton)}
-                      >
-                        Cancel
-                      </button>
-                    </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Inline custom payment panel */}
+                <AnimatePresence>
+                  {showCustomPaymentModal && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }} className="overflow-hidden">
+                      <div className="mt-4 p-4 rounded-2xl bg-violet-500/[0.05] border border-violet-500/25">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-white font-bold text-sm">Custom payment</h4>
+                          <button onClick={() => { setShowCustomPaymentModal(false); setCustomAmount(''); }} className="text-gray-500 hover:text-white cursor-pointer"><X className="w-4 h-4" /></button>
+                        </div>
+                        <p className="text-gray-500 text-xs mb-3">Pay ₹1 – ₹{Math.round(currentBillAmount).toLocaleString()}</p>
+                        <div className="relative mb-3">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium pointer-events-none">₹</span>
+                          <input type="number" value={customAmount} onChange={(e) => setCustomAmount(e.target.value)} className={`${inputClass} pl-9 focus:border-violet-400/60 focus:ring-violet-400/15`} placeholder="Amount" min="1" max={currentBillAmount} />
+                        </div>
+                        <button
+                          onClick={() => {
+                            const amount = parseFloat(customAmount);
+                            if (amount > 0 && amount <= currentBillAmount) {
+                              makePayment(amount, 'custom');
+                              setShowCustomPaymentModal(false);
+                              setCustomAmount('');
+                            } else {
+                              setNotification('Please enter a valid payment amount');
+                            }
+                          }}
+                          className={primaryAction}
+                        >
+                          Make payment
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <p className="mt-4 text-gray-600 text-[11px] leading-relaxed">
+                  {phase === 'spending'
+                    ? (currentSpending > 0 || currentBalance > 0 ? 'Keep spending or generate your statement to move to the payment phase.' : 'Start by making a purchase with your card.')
+                    : 'Choose a payment option to close out this statement.'}
+                </p>
+              </div>
+            </aside>
+
+            {/* ===== RIGHT: ANALYTICS ===== */}
+            <div className="flex flex-col gap-6 min-w-0">
+              {/* Metric tiles */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <MetricTile label="Credit limit" value={`₹${parseFloat(creditLimit).toLocaleString()}`} tone="blue" />
+                <MetricTile label="Outstanding" value={`₹${Math.round(currentBalance).toLocaleString()}`} tone="red" sub="From previous bills" />
+                <MetricTile label="This cycle" value={`₹${Math.round(currentSpending).toLocaleString()}`} tone="orange" sub="New spending" />
+                <MetricTile label="Interest paid" value={`₹${Math.round(totalInterestPaid).toLocaleString()}`} tone="red" sub="Already charged" />
+                <MetricTile label="Penalties" value={`₹${Math.round(totalPenalties).toLocaleString()}`} tone="red" sub="Late fees" />
+                <MetricTile label="Payments made" value={`₹${Math.round(totalPaymentsMade).toLocaleString()}`} tone="green" />
+              </div>
+
+              {/* Score gauge + utilization donut */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6 flex flex-col">
+                  <h3 className="font-display text-base font-bold text-white mb-2">Credit score</h3>
+                  <div className="flex-1 flex items-center justify-center py-2">
+                    <ScoreGauge score={creditScore} color={getCreditScoreColor(creditScore)} label={getCreditScoreLabel(creditScore)} />
+                  </div>
+                  <div className="flex items-start gap-2 px-3.5 py-3 rounded-xl bg-amber-400/[0.06] border border-amber-400/15 text-amber-300/90 text-xs">
+                    <Lightbulb className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                    <span>Pay in full and keep utilization under 30% to climb.</span>
                   </div>
                 </div>
-              )}
 
-              {showChargeModal && (
-                <div style={{...styles.modalOverlay, borderColor: '#F87171'}}>
-                  <h4 style={styles.modalTitle}>Make a Purchase</h4>
-                  <p style={styles.modalInfo}>Available credit: ₹{Math.round(availableCredit)}</p>
-                  <div style={styles.modalActions}>
-                    <div style={styles.modalInputContainer}>
-                      <div style={styles.inputContainer}>
-                        <span style={styles.currencySymbol}>₹</span>
-                        <input
-                          type="number"
-                          value={customAmount}
-                          onChange={(e) => setCustomAmount(e.target.value)}
-                          style={{...styles.input, ...styles.inputWithLeftIcon, borderColor: '#F87171'}}
-                          placeholder="Enter purchase amount"
-                          min="1"
-                          max={availableCredit}
-                          onFocus={(e) => e.target.style.borderColor = '#DC2626'}
-                          onBlur={(e) => e.target.style.borderColor = '#F87171'}
-                        />
-                      </div>
-                    </div>
-                    <div style={styles.modalButtons}>
-                      <button
-                        onClick={makeCharge}
-                        style={{...styles.confirmButton, }}
-                        
-                      >
-                        Make Purchase
-                      </button>
-                      <button
-                        onClick={() => {
-                          setShowChargeModal(false);
-                          setCustomAmount('');
-                        }}
-                        style={styles.cancelButton}
-                        onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
-                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                      >
-                        Cancel
-                      </button>
-                    </div>
+                <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6 flex flex-col">
+                  <h3 className="font-display text-base font-bold text-white mb-2">Credit utilization</h3>
+                  <div className="flex-1 min-h-[180px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={4} dataKey="value">
+                          {pieData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} stroke="transparent" />))}
+                        </Pie>
+                        <Tooltip formatter={(value) => `₹${Math.round(value).toLocaleString()}`} contentStyle={chartTooltipStyle} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="text-center">
+                    <span className="font-display text-2xl font-bold" style={{ color: getUtilizationColor(utilizationRatio) }}>{utilizationRatio.toFixed(1)}%</span>
+                    <span className="text-gray-500 text-xs ml-2">used</span>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
 
-            <div style={styles.chartsGrid}>
-              <div style={styles.chartCard}>
-                <h3 style={styles.chartTitle}>Balance Over Time</h3>
-                <div style={styles.chartContainer}>
+              {/* Balance chart */}
+              <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
+                <h3 className="font-display text-base font-bold text-white mb-5">Balance over time</h3>
+                <div className="h-[260px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={balanceHistory}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip formatter={(value) => [`₹${Math.round(value).toLocaleString()}`, 'Balance']} />
-                      <Line type="monotone" dataKey="balance" stroke="#DC2626" strokeWidth={2} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                      <XAxis dataKey="month" stroke="#6b7280" tick={{ fill: '#6b7280', fontSize: 12 }} />
+                      <YAxis stroke="#6b7280" tick={{ fill: '#6b7280', fontSize: 12 }} />
+                      <Tooltip formatter={(value) => [`₹${Math.round(value).toLocaleString()}`, 'Balance']} contentStyle={chartTooltipStyle} />
+                      <Line type="monotone" dataKey="balance" stroke="#FFD700" strokeWidth={2.5} dot={{ fill: '#FFD700', r: 3 }} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
-              <div style={styles.chartCard}>
-                <h3 style={styles.chartTitle}>Credit Utilization</h3>
-                <div style={styles.chartContainer}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={pieData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={5}
-                        dataKey="value"
-                      >
-                        {pieData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => `₹${Math.round(value).toLocaleString()}`} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div style={{textAlign: 'center', marginTop: '16px'}}>
-                  <div style={{fontSize: '2rem', fontWeight: '700', color: getUtilizationColor(utilizationRatio)}}>
-                    {utilizationRatio.toFixed(1)}%
-                  </div>
-                  <div style={{fontSize: '0.875rem', color: '#6B7280'}}>Utilization Ratio</div>
-                </div>
-              </div>
-
-              <div style={styles.chartCard}>
-                <h3 style={styles.chartTitle}>Credit Score</h3>
-                <div style={styles.creditScoreContainer}>
-                  <div style={styles.creditScoreBar}>
-                    <div style={styles.creditScoreTrack}>
-                      <div
-                        style={{
-                          ...styles.creditScoreProgress,
-                          width: `${((creditScore - 300) / 550) * 100}%`,
-                          backgroundColor: getCreditScoreColor(creditScore)
-                        }}
-                      />
-                    </div>
-                    <div style={styles.creditScoreLabels}>
-                      <span>300</span>
-                      <span>850</span>
-                    </div>
-                  </div>
-                  <div style={styles.creditScoreValue}>
-                    <div style={{...styles.creditScoreNumber, color: getCreditScoreColor(creditScore)}}>
-                      {creditScore}
-                    </div>
-                    <div style={styles.creditScoreLabel}>{getCreditScoreLabel(creditScore)}</div>
-                  </div>
-                </div>
-                
-                <div style={styles.creditTip}>
-                  <p><strong>Tips:</strong></p>
-                  <ul style={{margin: '8px 0', paddingLeft: '20px'}}>
-                    <li>Pay full balance to avoid interest</li>
-                    <li>Keep utilization under 30%</li>
-                    <li>Never miss payments</li>
-                  </ul>
-                </div>
-              </div>
-
-              <div style={styles.chartCard}>
-                <h3 style={styles.chartTitle}>Transaction History</h3>
-                <div style={{maxHeight: '250px', overflowY: 'auto',width:"100%"}}>
+              {/* Transaction history */}
+              <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
+                <h3 className="font-display text-base font-bold text-white mb-5">Transaction history</h3>
+                <div className="max-h-[280px] overflow-y-auto pr-1">
                   {paymentHistory.length === 0 ? (
-                    <p style={{color: '#6B7280', textAlign: 'center', padding: '40px'}}>
-                      No transactions yet
-                    </p>
+                    <div className="text-center py-12">
+                      <ReceiptText className="w-8 h-8 mx-auto mb-3 text-gray-700" />
+                      <p className="text-gray-600 text-sm">No transactions yet</p>
+                    </div>
                   ) : (
-                    <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
+                    <div className="flex flex-col gap-2">
                       {paymentHistory.slice().reverse().map((entry, index) => (
-                        <div 
-                          key={index} 
-                          style={{
-                            display: 'flex', 
-                            justifyContent: 'space-between', 
-                            padding: '12px',
-                            backgroundColor: entry.action.includes('Bill') ? '#EEF2FF' : '#F8FAFC',
-                            borderRadius: '6px',
-                            fontSize: '0.875rem',
-                            backgroundColor:"black"
-                          }}
-                        >
-                          <span>Month {entry.month}: {entry.action}</span>
-                          <span style={{
-                            color: entry.amount > 0 ? '#16A34A' : '#DC2626',
-                            fontWeight: '600'
-                          }}>
+                        <div key={index} className={`flex justify-between items-center gap-3 px-4 py-3 rounded-xl text-sm ${entry.action.includes('Bill') ? 'bg-violet-500/[0.08] border border-violet-500/15' : 'bg-white/[0.03] border border-white/[0.06]'}`}>
+                          <span className="text-gray-300">Month {entry.month}: {entry.action}</span>
+                          <span className={`font-semibold whitespace-nowrap ${entry.amount > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                             {entry.amount > 0 ? '-' : '+'}₹{Math.abs(entry.amount).toLocaleString()}
                           </span>
                         </div>
@@ -1432,64 +777,25 @@ const CreditCardSimulator = () => {
                 </div>
               </div>
             </div>
-
-            <div style={styles.resetContainer}>
-              <button
-                onClick={resetSimulation}
-                style={styles.resetButton}
-                onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
-                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-              >
-                Reset Simulation
-              </button>
-            </div>
-          </div>
+          </motion.div>
         )}
-
-        {/* {notification && (
-          <div style={styles.notification}>
-            <p style={styles.notificationText}>{notification}</p>
-          </div>
-        )} */}
       </div>
 
-      <style>
-        {`
-          @media (max-width: 768px) {
-            .charts-grid {
-              grid-template-columns: 1fr !important;
-            }
-            .actions-grid {
-              grid-template-columns: repeat(2, 1fr) !important;
-            }
-            .cards-grid {
-              grid-template-columns: repeat(2, 1fr) !important;
-            }
-          }
-          
-          @media (max-width: 480px) {
-            .cards-grid {
-              grid-template-columns: 1fr !important;
-            }
-            .actions-grid {
-              grid-template-columns: 1fr !important;
-            }
-          }
-          
-          input:focus {
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
-          }
-          
-          button:hover {
-            transform: translateY(-1px);
-          }
-          
-          button:active {
-            transform: translateY(0);
-          }
-        `}
-      </style>
+      {/* Notification toast */}
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            initial={{ opacity: 0, x: 40, scale: 0.96 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 40, scale: 0.96 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed bottom-5 right-5 z-50 max-w-sm flex items-start gap-3 px-5 py-4 rounded-2xl bg-[#141414] border border-gold/25 shadow-[0_20px_50px_rgba(0,0,0,0.7)]"
+          >
+            <Info className="w-4 h-4 mt-0.5 flex-shrink-0 text-gold" />
+            <p className="text-gray-200 text-sm leading-relaxed">{notification}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

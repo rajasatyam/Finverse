@@ -13,6 +13,13 @@ import StockSimulator from "./features/StockSimulator";
 import ScrollToTop from "./features/ScrollToTop";
 import { Tracker } from "./features/tracker";
 import AuthPage from "./features/SignUpPage";
+import AboutPage from "./pages/AboutPage";
+import ContactPage from "./pages/ContactPage";
+import HelpCenterPage from "./pages/HelpCenterPage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import TermsPage from "./pages/TermsPage";
+import RequireAuth from "./components/RequireAuth";
+import ViewOnlyGate from "./components/ViewOnlyGate";
 
 function App() {
   return (
@@ -23,15 +30,21 @@ function App() {
         <Route path="/features" element={<FeaturesPage />} />
         <Route path="/community" element={<CommunityPage/>}/>
         <Route path="/creditOrLoan" element={<FinancialSimulatorLanding/>}/>
-        <Route path="/credit" element={<CreditCardSimulator/>}/>
+        <Route path="/credit" element={<ViewOnlyGate><CreditCardSimulator/></ViewOnlyGate>}/>
         <Route path="/credit!help" element={<CreditCardSimulationExplanation/>}/>
         <Route path="/loan!help" element={<LoanSimulationExplanation/>}/>
-        <Route path="/loan" element={<LoanSimulator/>}/>
-        <Route path="/chatbot" element={<FinancialChatbot/>}/>
-        <Route path="/news" element={<FinNews/>}/>
-        <Route path="/stock" element={<StockSimulator/>}/>
-        <Route path="/tracker" element={<Tracker/>}/>
-        <Route path="/signup" element={<AuthPage/>}/>
+        <Route path="/loan" element={<ViewOnlyGate><LoanSimulator/></ViewOnlyGate>}/>
+        <Route path="/chatbot" element={<ViewOnlyGate><FinancialChatbot/></ViewOnlyGate>}/>
+        <Route path="/news" element={<RequireAuth><FinNews/></RequireAuth>}/>
+        <Route path="/stock" element={<ViewOnlyGate><StockSimulator/></ViewOnlyGate>}/>
+        <Route path="/tracker" element={<ViewOnlyGate><Tracker/></ViewOnlyGate>}/>
+        <Route path="/login" element={<AuthPage mode="login"/>}/>
+        <Route path="/signup" element={<AuthPage mode="signup"/>}/>
+        <Route path="/about" element={<AboutPage/>}/>
+        <Route path="/contact" element={<ContactPage/>}/>
+        <Route path="/help" element={<HelpCenterPage/>}/>
+        <Route path="/privacy" element={<PrivacyPolicyPage/>}/>
+        <Route path="/terms" element={<TermsPage/>}/>
       </Routes>
     </Router>
   );

@@ -1,592 +1,215 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import SiteHeader from '../components/SiteHeader';
+import SiteFooter from '../components/SiteFooter';
+import {
+  ArrowRight,
+  ArrowUpRight,
+  BookOpen,
+  CreditCard,
+  Landmark,
+  BarChart3,
+  TrendingUp,
+  Wallet,
+  CalendarClock,
+  Calculator,
+  Scale,
+} from 'lucide-react';
+
+const rotatingWords = [
+  'interest',
+  'billing cycles',
+  'credit scores',
+  'repayment',
+  'penalties',
+];
+
+const tracks = [
+  {
+    key: 'credit',
+    index: '01',
+    icon: CreditCard,
+    label: 'Credit Card',
+    headline: 'Live a billing cycle, month by month.',
+    description:
+      'Spend against a limit, generate a statement, then decide how to pay it down. Watch interest, utilization, and your score react to every choice.',
+    points: [
+      { icon: BarChart3, label: 'Interest on carried balances' },
+      { icon: TrendingUp, label: 'Credit-score impact' },
+      { icon: Wallet, label: 'Minimum vs full payment' },
+    ],
+    startPath: '/credit',
+    helpPath: '/credit!help',
+    startLabel: 'Launch credit simulator',
+  },
+  {
+    key: 'loan',
+    index: '02',
+    icon: Landmark,
+    label: 'Loan & EMI',
+    headline: 'See a loan the way a lender does.',
+    description:
+      'Set a principal, rate, and term, then work through the amortization one EMI at a time — paying on time, prepaying, or delaying to feel the cost.',
+    points: [
+      { icon: CalendarClock, label: 'Month-by-month schedule' },
+      { icon: Calculator, label: 'EMI & total-cost math' },
+      { icon: Scale, label: 'Prepay vs delay trade-offs' },
+    ],
+    startPath: '/loan',
+    helpPath: '/loan!help',
+    startLabel: 'Launch loan simulator',
+  },
+];
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 30 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
+};
+
+const stagger = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.12 } },
+};
 
 const FinancialSimulatorLanding = () => {
-  const [hoveredCard, setHoveredCard] = useState(null);
-  const [currentFeature, setCurrentFeature] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
-
-  const features = [
-    "Real-time interest calculations",
-    "Interactive billing cycles", 
-    "Credit score tracking",
-    "Payment strategy learning",
-    "Risk-free environment"
-  ];
-
+  const [word, setWord] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentFeature((prev) => (prev + 1) % features.length);
-    }, 3000);
+      setWord((prev) => (prev + 1) % rotatingWords.length);
+    }, 2600);
     return () => clearInterval(interval);
-  }, []); 
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  
-
   return (
-    <div style={styles.container}>
-      {/* Animated background elements */}
-      <div style={styles.backgroundElements}>
-        <div style={styles.floatingElement1}></div>
-        <div style={styles.floatingElement2}></div>
-        <div style={styles.floatingElement3}></div>
+    <div className="relative min-h-screen bg-[#0a0a0a] text-white font-sans overflow-x-hidden">
+      <SiteHeader />
+
+      {/* Ambient background */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-[-12%] left-1/2 -translate-x-1/2 w-[900px] h-[520px] bg-gold/[0.05] rounded-full blur-[190px]" />
+        <div className="absolute bottom-[8%] right-[-8%] w-[420px] h-[420px] bg-gold-dark/[0.04] rounded-full blur-[150px]" />
       </div>
 
-      <div style={styles.content}>
-        {/* Hero Section */}
-        <div style={styles.hero}>
-          <div style={styles.heroContent}>
-            <h1 style={{...styles.mainTitle, fontSize : isMobile ? "2.5rem":"3rem"}}  >
-              Financial Literacy
-              <span style={styles.titleAccent}> Simulator</span>
-            </h1>
-            <p style={{...styles.heroSubtitle}}>
-              Master credit cards and loans through interactive simulations. 
-              Learn financial concepts in a safe, gamified environment.
-            </p>
-            
-            {/* Rotating features */}
-            <div style={styles.featureRotator}>
-              <span style={styles.featurePrefix}>Experience: </span>
-              <span style={styles.rotatingFeature}>
-                {features[currentFeature]}
-              </span>
-            </div>
-          </div>
-        </div>
+      <main className="relative z-10">
+        {/* Hero */}
+        <section className="px-6 md:px-8 pt-36 pb-16">
+          <div className="max-w-6xl mx-auto">
+            <motion.div initial="hidden" animate="show" variants={stagger} className="max-w-4xl">
+              <motion.h1
+                variants={fadeUp}
+                className="font-display text-3xl sm:text-4xl md:text-5xl font-bold leading-[1.1] tracking-tight mb-6"
+              >
+                Learn how debt really works —
+                <br className="hidden sm:block" />{' '}
+                <span className="inline-flex items-baseline">
+                  <span className="text-gray-500">the&nbsp;</span>
+                  <span className="relative inline-block min-w-[6ch]">
+                    <AnimatePresence mode="wait">
+                      <motion.span
+                        key={word}
+                        initial={{ opacity: 0, y: 14 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -14 }}
+                        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                        className="bg-gradient-to-r from-gold via-amber-400 to-gold-dark bg-clip-text text-transparent"
+                      >
+                        {rotatingWords[word]}
+                      </motion.span>
+                    </AnimatePresence>
+                  </span>
+                </span>
+              </motion.h1>
 
-        {/* Main Simulator Options */}
-        <div style={styles.simulatorSection}>
-          <h2 style={{...styles.sectionTitle,fontSize : isMobile ? "1.7em":"2.5rem"}}>Choose Your Learning Path</h2>
-          
-          <div style={styles.simulatorGrid}>
-            {/* Credit Card Simulator */}
-            <div 
-              style={{
-                ...styles.simulatorCard,
-                ...(hoveredCard === 'credit' ? styles.simulatorCardHover : {})
-              }}
-              onMouseEnter={() => setHoveredCard('credit')}
-              onMouseLeave={() => setHoveredCard(null)}
+              <motion.p
+                variants={fadeUp}
+                className="text-gray-400 text-lg md:text-xl leading-relaxed max-w-2xl"
+              >
+                Two interactive simulators put you in the driver's seat of a credit card and a loan.
+                Make the calls, see the consequences, keep none of the risk.
+              </motion.p>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Track chooser */}
+        <section className="px-6 md:px-8 pb-24">
+          <div className="max-w-6xl mx-auto">
+            <motion.div
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.15 }}
+              variants={stagger}
+              className="grid grid-cols-1 lg:grid-cols-2 gap-6"
             >
-              <div style={styles.cardIcon}>💳</div>
-              <h3 style={styles.cardTitle}>Credit Card Simulator</h3>
-              <p style={styles.cardDescription}>
-                Learn about billing cycles, interest rates, minimum payments, and credit scores. 
-                Understand how payment strategies affect your financial health.
-              </p>
-              
-              <div style={styles.cardFeatures}>
-                <div style={styles.feature}>
-                  <span style={styles.featureIcon}>📊</span>
-                  <span>Interest Calculations</span>
-                </div>
-                <div style={styles.feature}>
-                  <span style={styles.featureIcon}>📈</span>
-                  <span>Credit Score Impact</span>
-                </div>
-                <div style={styles.feature}>
-                  <span style={styles.featureIcon}>💰</span>
-                  <span>Payment Strategies</span>
-                </div>
-              </div>
-              
-              <button onClick={()=>navigate('/credit')} style={styles.simulatorButton}>
-                Start Credit Simulation
-                <span style={styles.buttonArrow}>→</span>
-              </button>
+              {tracks.map((track) => (
+                <motion.article
+                  key={track.key}
+                  variants={fadeUp}
+                  className="group relative flex flex-col bg-white/[0.03] border border-white/[0.08] hover:border-gold/30 rounded-[28px] p-8 sm:p-9 overflow-hidden transition-colors duration-300"
+                >
+                  {/* Corner glow on hover */}
+                  <div className="pointer-events-none absolute -top-24 -right-24 w-56 h-56 rounded-full bg-gold/[0.06] blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-              <button onClick={()=>navigate('/credit!help')} style={{...styles.simulatorButton, marginTop: '20px'}}>
-                Learn How It Works
-                <span style={styles.buttonArrow}>→</span>
-              </button>
-            </div>
+                  <div className="relative flex items-start justify-between mb-7">
+                    <div className="w-14 h-14 rounded-2xl bg-gold/5 border border-gold/15 flex items-center justify-center text-gold group-hover:bg-gold group-hover:text-black group-hover:border-gold transition-all duration-300">
+                      <track.icon className="w-7 h-7" />
+                    </div>
+                    <span className="font-display text-5xl font-bold text-white/[0.06] leading-none select-none">
+                      {track.index}
+                    </span>
+                  </div>
 
-            {/* Loan Simulator */}
-            <div 
-              style={{
-                ...styles.simulatorCard,
-                ...(hoveredCard === 'loan' ? styles.simulatorCardHover : {})
-              }}
-              onMouseEnter={() => setHoveredCard('loan')}
-              onMouseLeave={() => setHoveredCard(null)}
-            >
-              <div style={styles.cardIcon}>🏠</div>
-              <h3 style={styles.cardTitle}>Loan Simulator</h3>
-              <p style={styles.cardDescription}>
-                Explore different loan types, repayment schedules, and the impact of 
-                interest rates on total cost. Plan your borrowing strategy.
-              </p>
-              
-              <div style={styles.cardFeatures}>
-                <div style={styles.feature}>
-                  <span style={styles.featureIcon}>📅</span>
-                  <span>Repayment Schedules</span>
-                </div>
-                <div style={styles.feature}>
-                  <span style={styles.featureIcon}>🔢</span>
-                  <span>EMI Calculations</span>
-                </div>
-                <div style={styles.feature}>
-                  <span style={styles.featureIcon}>⚖️</span>
-                  <span>Loan Comparisons</span>
-                </div>
-              </div>
-              
-              <button onClick={()=>navigate('/loan')} style={styles.simulatorButton}>
-                Start Loan Simulation
-                <span style={styles.buttonArrow}>→</span>
-              </button>
+                  <span className="relative text-gold text-xs font-bold uppercase tracking-widest mb-3">
+                    {track.label}
+                  </span>
+                  <h2 className="relative font-display text-2xl sm:text-3xl font-bold text-white mb-4 leading-snug">
+                    {track.headline}
+                  </h2>
+                  <p className="relative text-gray-400 text-[15px] leading-relaxed mb-7">
+                    {track.description}
+                  </p>
 
-              <button onClick={()=>navigate('/loan!help')} style={{...styles.simulatorButton, marginTop: '20px'}}>
-                Learn How It Works
-                <span style={styles.buttonArrow}>→</span>
-              </button>
-              
-            </div>
+                  <ul className="relative flex flex-col gap-3 mb-8">
+                    {track.points.map((p) => (
+                      <li key={p.label} className="flex items-center gap-3 text-gray-300 text-sm">
+                        <span className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-gold/80 flex-shrink-0">
+                          <p.icon className="w-4 h-4" />
+                        </span>
+                        {p.label}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="relative mt-auto flex flex-col sm:flex-row gap-3">
+                    <button
+                      onClick={() => navigate(track.startPath)}
+                      className="group/btn flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm uppercase tracking-wider text-black bg-gradient-to-br from-gold to-gold-dark shadow-[0_8px_30px_rgba(255,215,0,0.2)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_40px_rgba(255,215,0,0.4)] cursor-pointer"
+                    >
+                      {track.startLabel}
+                      <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
+                    </button>
+                    <button
+                      onClick={() => navigate(track.helpPath)}
+                      className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full font-semibold text-sm text-gold border border-gold/25 bg-transparent hover:bg-gold/10 hover:border-gold/50 transition-all duration-300 cursor-pointer"
+                    >
+                      <BookOpen className="w-4 h-4" />
+                      How it works
+                    </button>
+                  </div>
+                </motion.article>
+              ))}
+            </motion.div>
           </div>
-        </div>
+        </section>
 
-      
+      </main>
 
-        {/* Stats Section */}
-        <div style={styles.statsSection}>
-          <h2 style={styles.statsTitle}>Why Financial Literacy Matters</h2>
-          <div style={{...styles.statsGrid,gridTemplateColumns: isMobile ? 'repeat(auto-fit, minmax(150px, 1fr))' : 'repeat(auto-fit, minmax(200px, 1fr))'}}>
-            <div style={styles.statItem}>
-              <div style={styles.statNumber}>66%</div>
-              <div style={styles.statLabel}>of adults lack financial literacy</div>
-            </div>
-            <div style={styles.statItem}>
-              <div style={styles.statNumber}>₹2.1L</div>
-              <div style={styles.statLabel}>average credit card debt</div>
-            </div>
-            <div style={styles.statItem}>
-              <div style={styles.statNumber}>18%</div>
-              <div style={styles.statLabel}>typical credit card APR</div>
-            </div>
-            <div style={styles.statItem}>
-              <div style={styles.statNumber}>85%</div>
-              <div style={styles.statLabel}>learn better through simulation</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div style={styles.footer}>
-          <p style={styles.footerText}>
-            Interactive financial education through realistic simulations
-          </p>
-        </div>
-      </div>
+      <SiteFooter />
     </div>
   );
-};
-
-const isMobile = window.innerWidth <= 768;
-
-const styles = {
-  container: {
-    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    backgroundColor: '#0A0A0A',
-    backgroundImage: `
-      radial-gradient(circle at 20% 50%, rgba(255, 215, 0, 0.03) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(255, 165, 0, 0.02) 0%, transparent 50%),
-      radial-gradient(circle at 40% 80%, rgba(255, 215, 0, 0.02) 0%, transparent 50%)
-    `,
-    minHeight: '100vh',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-
-  backgroundElements: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    pointerEvents: 'none',
-    zIndex: 0,
-  },
-
-  floatingElement1: {
-    position: 'absolute',
-    top: '10%',
-    left: '10%',
-    width: '200px',
-    height: '200px',
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%)',
-    animation: 'float 6s ease-in-out infinite',
-  },
-
-  floatingElement2: {
-    position: 'absolute',
-    top: '60%',
-    right: '15%',
-    width: '150px',
-    height: '150px',
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(255, 165, 0, 0.08) 0%, transparent 70%)',
-    animation: 'float 8s ease-in-out infinite reverse',
-  },
-
-  floatingElement3: {
-    position: 'absolute',
-    bottom: '20%',
-    left: '20%',
-    width: '100px',
-    height: '100px',
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(255, 215, 0, 0.06) 0%, transparent 70%)',
-    animation: 'float 10s ease-in-out infinite',
-  },
-
-  content: {
-    position: 'relative',
-    zIndex: 1,
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: isMobile ? '30px' : "10px",
-    paddingTop:"30px"
-  },
-
-  hero: {
-    textAlign: 'center',
-    marginBottom: '20px',
-    
-  },
-
-  heroContent: {
-    maxWidth: '800px',
-    margin: '0 auto',
-  },
-
-  mainTitle: {
-    fontSize: '3rem',
-    fontWeight: '900',
-    marginBottom: '24px',
-    lineHeight: 1.1,
-    letterSpacing: '-0.02em',
-  },
-
-  titleAccent: {
-    background: 'linear-gradient(135deg, #FFD700, #FFA500, #FF8C00)',
-    WebkitBackgroundClip: 'text',
-    backgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    textShadow: '0 0 40px rgba(255, 215, 0, 0.4)',
-    animation: 'glow 3s ease-in-out infinite alternate',
-  },
-
-  heroSubtitle: {
-    fontSize: '1.4rem',
-    color: '#D4AF37',
-    fontWeight: '400',
-    marginBottom: '15px',
-    lineHeight: 1.5,
-  },
-
-  featureRotator: {
-    fontSize: '1.1rem',
-    color: '#B8860B',
-    fontWeight: '500',
-    marginBottom: '20px',
-  },
-
-  featurePrefix: {
-    color: '#8B7355',
-  },
-
-  rotatingFeature: {
-    color: '#FFD700',
-    fontWeight: '600',
-    textShadow: '0 0 15px rgba(255, 215, 0, 0.3)',
-    transition: 'all 0.5s ease',
-  },
-
-  simulatorSection: {
-    marginBottom: '80px',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'column',
-  },
-
-  sectionTitle: {
-    fontSize: '2.5rem',
-    fontWeight: '700',
-    color: '#FFD700',
-    textAlign: 'center',
-    marginBottom: '48px',
-    textShadow: '0 0 30px rgba(255, 215, 0, 0.3)',
-  },
-
-  simulatorGrid: {
-    display: 'grid',
-    gridTemplateColumns: isMobile ? 'repeat(auto-fit, minmax(auto, 1fr))' : 'repeat(auto-fit, minmax(400px, 1fr))',
-    gap: '32px',
-    maxWidth: '1000px',
-    
-  },
-
-  simulatorCard: {
-    backgroundColor: '#1A1A1A',
-    backgroundImage: 'linear-gradient(135deg, rgba(255, 215, 0, 0.08) 0%, rgba(255, 165, 0, 0.04) 100%)',
-    borderRadius: '20px',
-    padding: '30px',
-    paddingTop:'0px',
-    border: '2px solid rgba(255, 215, 0, 0.2)',
-    boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 215, 0, 0.1)',
-    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-    cursor: 'pointer',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-
-  simulatorCardHover: {
-    transform: 'translateY(-12px) scale(1.03)',
-    boxShadow: '0 25px 60px rgba(0, 0, 0, 0.7), 0 0 0 3px rgba(255, 215, 0, 0.3)',
-    borderColor: 'rgba(255, 215, 0, 0.4)',
-  },
-
-  cardIcon: {
-    fontSize: '4rem',
-    marginBottom: '24px',
-    display: 'block',
-    textAlign: 'center',
-    filter: 'drop-shadow(0 0 20px rgba(255, 215, 0, 0.3))',
-  },
-
-  cardTitle: {
-    fontSize: '1.8rem',
-    fontWeight: '700',
-    color: '#FFD700',
-    marginBottom: '16px',
-    textAlign: 'center',
-    textShadow: '0 0 20px rgba(255, 215, 0, 0.3)',
-  },
-
-  cardDescription: {
-    fontSize: '1rem',
-    color: '#D4AF37',
-    lineHeight: 1.6,
-    marginBottom: '28px',
-    textAlign: 'center',
-  },
-
-  cardFeatures: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-    marginBottom: '32px',
-  },
-
-  feature: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    fontSize: '0.95rem',
-    color: '#B8860B',
-    fontWeight: '500',
-  },
-
-  featureIcon: {
-    fontSize: '1.2rem',
-    width: '24px',
-    textAlign: 'center',
-  },
-
-  simulatorButton: {
-    width: '100%',
-    padding: '16px 24px',
-    fontSize: '1.1rem',
-    fontWeight: '700',
-    color: '#0A0A0A',
-    backgroundColor: '#FFD700',
-    border: 'none',
-    borderRadius: '12px',
-    cursor: 'pointer',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-
-  buttonArrow: {
-    fontSize: '1.2rem',
-    transition: 'transform 0.3s ease',
-  },
-
-  buttonIcon: {
-    fontSize: '1.1rem',
-  },
-
-  comingSoon: {
-    position: 'absolute',
-    top: '16px',
-    right: '16px',
-    backgroundColor: '#B8860B',
-    color: '#0A0A0A',
-    padding: '6px 12px',
-    borderRadius: '20px',
-    fontSize: '0.75rem',
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
-  },
-
-  learnMoreSection: {
-    marginBottom: '80px',
-    display: 'flex',
-    justifyContent: 'center',
-  },
-
-  learnMoreCard: {
-    backgroundColor: '#1A1A1A',
-    backgroundImage: 'linear-gradient(135deg, rgba(255, 215, 0, 0.06) 0%, transparent 70%)',
-    borderRadius: '16px',
-    padding: '40px',
-    maxWidth: '600px',
-    width: '100%',
-    border: '2px solid rgba(255, 215, 0, 0.2)',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 215, 0, 0.1)',
-    textAlign: 'center',
-    transition: 'all 0.3s ease',
-  },
-
-  learnMoreIcon: {
-    fontSize: '3rem',
-    marginBottom: '20px',
-    display: 'block',
-    filter: 'drop-shadow(0 0 15px rgba(255, 215, 0, 0.3))',
-  },
-
-  learnMoreTitle: {
-    fontSize: '1.6rem',
-    fontWeight: '700',
-    color: '#FFD700',
-    marginBottom: '16px',
-    textShadow: '0 0 20px rgba(255, 215, 0, 0.3)',
-  },
-
-  learnMoreDescription: {
-    fontSize: '1rem',
-    color: '#D4AF37',
-    lineHeight: 1.6,
-    marginBottom: '28px',
-  },
-
-  benefitsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: '16px',
-    marginBottom: '32px',
-  },
-
-  benefit: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    fontSize: '0.9rem',
-    color: '#B8860B',
-    fontWeight: '500',
-  },
-
-  benefitIcon: {
-    fontSize: '1.1rem',
-  },
-
-  learnMoreButton: {
-    padding: '14px 28px',
-    fontSize: '1rem',
-    fontWeight: '600',
-    color: '#FFD700',
-    backgroundColor: '#2A2A2A',
-    border: '2px solid rgba(255, 215, 0, 0.3)',
-    borderRadius: '10px',
-    cursor: 'pointer',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    margin: '0 auto',
-  },
-
-  statsSection: {
-    marginBottom: '80px'
-  },
-
-  statsTitle: {
-    fontSize: '2rem',
-    fontWeight: '700',
-    color: '#FFD700',
-    textAlign: 'center',
-    marginBottom: '40px',
-    textShadow: '0 0 25px rgba(255, 215, 0, 0.3)',
-  },
-
-  statsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '24px',
-    maxWidth: '1000px',
-    margin: '0 auto',
-  },
-
-  statItem: {
-    backgroundColor: '#1A1A1A',
-    backgroundImage: 'linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, transparent 60%)',
-    padding: '32px 20px',
-    borderRadius: '12px',
-    textAlign: 'center',
-    border: '1px solid rgba(255, 215, 0, 0.15)',
-    boxShadow: '0 6px 25px rgba(0, 0, 0, 0.4)',
-    transition: 'all 0.3s ease',
-  },
-
-  statNumber: {
-    fontSize: '2.2rem',
-    fontWeight: '800',
-    color: '#FFD700',
-    marginBottom: '8px',
-    textShadow: '0 0 20px rgba(255, 215, 0, 0.4)',
-  },
-
-  statLabel: {
-    fontSize: '0.9rem',
-    color: '#B8860B',
-    fontWeight: '500',
-    lineHeight: 1.4,
-  },
-
-  footer: {
-    textAlign: 'center',
-    padding: '40px 20px',
-    borderTop: '1px solid rgba(255, 215, 0, 0.2)',
-  },
-
-  footerText: {
-    color: '#8B7355',
-    fontSize: '0.95rem',
-    margin: 0,
-  },
 };
 
 export default FinancialSimulatorLanding;
