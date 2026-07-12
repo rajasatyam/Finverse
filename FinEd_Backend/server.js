@@ -54,7 +54,7 @@ app.post("/api/chat", async (req, res) => {
 
     // Configure model with specific settings for financial advice
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.0-flash",
+      model: "gemini-3.1-flash-lite",
       generationConfig: {
         maxOutputTokens: 500,
         temperature: 0.7,
@@ -134,7 +134,7 @@ async function generateInsight(title, summary) {
 
   try {
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.0-flash",
+      model: "gemini-3.1-flash-lite",
       generationConfig: {
         maxOutputTokens: 150,
         temperature: 0.6,
@@ -167,7 +167,7 @@ Takeaway: [One practical tip]`;
 async function analyzeSentiment(title, summary) {
   try {
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.0-flash",
+      model: "gemini-3.1-flash-lite",
       generationConfig: {
         maxOutputTokens: 50,
         temperature: 0.3,
@@ -214,7 +214,7 @@ async function fetchDefinition(term) {
   // Fallback to Gemini for financial terms
   try {
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.0-flash",
+      model: "gemini-3.1-flash-lite",
       generationConfig: {
         maxOutputTokens: 100,
         temperature: 0.3,
@@ -552,7 +552,7 @@ app.get("/api/analytics/sentiment", async (req, res) => {
 app.get("/api/health", async (req, res) => {
   const healthCheck = {
     status: "healthy",
-    service: "WealthWise AI Backend",
+    service: "FinEd API Backend",
     timestamp: new Date().toISOString(),
     version: "2.0.0",
     features: {
@@ -668,18 +668,7 @@ app.use('*', (req, res) => {
 // --- Start Server ---
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
-  console.log(`✅ WealthWise AI Server running on http://localhost:${PORT}`);
-  console.log(`🤖 Enhanced Financial Assistant Backend Ready`);
-  console.log(`📊 Available Endpoints:`);
-  console.log(`   POST /api/chat - Main chat functionality`);
-  console.log(`   GET  /api/health - Health check with service status`);
-  console.log(`   GET  /api/tips/:mode - Get financial tips`);
-  console.log(`   GET  /api/modes - Get advisory mode info`);
-  console.log(`   GET  /api/finnews - Enhanced finance news with insights`);
-  console.log(`   GET  /api/dictionary/:term - Dynamic financial definitions`);
-  console.log(`   GET  /api/categories - Available news categories`);
-  console.log(`   GET  /api/entities - Popular financial entities`);
-  console.log(`   POST /api/finnews/search - Advanced news search`);
-  console.log(`   GET  /api/analytics/sentiment - Market sentiment analytics`);
-  console.log(`🔍 Features: Marketaux integration, AI insights, sentiment analysis, dynamic dictionary`);
+  console.log(`FinEd API server running on http://localhost:${PORT}`);
+  console.log(`Financial literacy backend ready`);
+  console.log(`Endpoints: /api/chat, /api/health, /api/finnews, /api/dictionary/:term, /api/tips, /api/modes, /api/categories, /api/entities`);
 });
