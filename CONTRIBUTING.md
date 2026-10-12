@@ -7,6 +7,7 @@ Thank you for your interest in contributing to FinEd! This document explains how
 1. **Fork** this repository and clone your fork.
 2. Create a new branch from `main`:
    ```bash
+   
    git checkout -b feature/your-feature-name
    ```
 3. Set up both the frontend and backend by following the instructions in the root [README](README.md).
