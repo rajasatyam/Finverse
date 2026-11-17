@@ -17,7 +17,9 @@ import {
   Menu,
   X,
   HelpCircle,
-  ArrowRight
+  ArrowRight,
+  GraduationCap,
+  LineChart
 } from 'lucide-react';
 
 const SiteHeader = () => {
@@ -77,6 +79,10 @@ const SiteHeader = () => {
       navigate('/login');
       return;
     }
+    if (to.startsWith('http://') || to.startsWith('https://')) {
+      window.location.href = to;
+      return;
+    }
     navigate(to);
   };
 
@@ -108,6 +114,13 @@ const SiteHeader = () => {
       icon: TrendingUp,
       to: '/stock',
       requiresAuth: true
+    },
+    {
+      title: 'Paper Trading',
+      desc: 'Live simulated paper trading on Numatix.',
+      icon: LineChart,
+      to: 'https://numatix-web.vercel.app/trading',
+      requiresAuth: false
     }
   ];
 
@@ -129,6 +142,12 @@ const SiteHeader = () => {
   ];
 
   const resources = [
+    {
+      title: 'Learning',
+      desc: 'Master the stock market with Zerodha Varsity video modules.',
+      icon: GraduationCap,
+      to: '/learning'
+    },
     {
       title: 'Market Insights',
       desc: 'Keep up with real-world financial events and news articles.',

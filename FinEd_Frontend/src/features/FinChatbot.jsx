@@ -122,48 +122,67 @@ const FinancialChatbot = () => {
   const sendMessage = async () => {
     if (!inputMessage.trim()) return;
 
+    const messageText = inputMessage;
     const userMessage = {
       id: Date.now(),
       type: 'user',
-      content: inputMessage,
+      content: messageText,
       timestamp: new Date(),
       mode: advisoryMode
     };
-    let id;
-    if (!chatHistoryId) {
-      id = await createChatHistory(auth.currentUser.uid);
-    }
-
-    const chatDocRef = doc(db, "chatHistory", chatHistoryId ? chatHistoryId : id);
-
-    await updateDoc(chatDocRef, {
-      messages: arrayUnion(userMessage)
-    });
 
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
     setIsTyping(true);
     setError(null);
 
+    let id = chatHistoryId;
+    if (auth.currentUser?.uid) {
+      try {
+        if (!id) {
+          id = await createChatHistory(auth.currentUser.uid);
+        }
+        if (id) {
+          const chatDocRef = doc(db, "chatHistory", id);
+          await updateDoc(chatDocRef, {
+            messages: arrayUnion(userMessage)
+          });
+        }
+      } catch (firestoreErr) {
+        console.warn("Could not save chat history to Firestore:", firestoreErr);
+      }
+    }
+
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+
       const response = await fetch(`${API_BASE}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: inputMessage, context: 'financial_assistant', mode: advisoryMode }),
+        body: JSON.stringify({ message: messageText, context: 'financial_assistant', mode: advisoryMode }),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
 
       const data = await response.json();
 
       const botMessage = {
         id: Date.now() + 1,
         type: 'bot',
-        content: data.response || generateMockResponse(inputMessage, advisoryMode),
+        content: data.response || generateMockResponse(messageText, advisoryMode),
         timestamp: new Date(),
         mode: advisoryMode
       };
 
-      const chatDocRef2 = doc(db, "chatHistory", chatHistoryId ? chatHistoryId : id);
-      await updateDoc(chatDocRef2, { messages: arrayUnion(botMessage) });
+      if (id) {
+        try {
+          const chatDocRef2 = doc(db, "chatHistory", id);
+          await updateDoc(chatDocRef2, { messages: arrayUnion(botMessage) });
+        } catch (e) {
+          console.warn("Could not sync bot response to Firestore:", e);
+        }
+      }
 
       setMessages(prev => [...prev, botMessage]);
     } catch (err) {
@@ -171,7 +190,7 @@ const FinancialChatbot = () => {
       const errorMessage = {
         id: Date.now() + 1,
         type: 'bot',
-        content: generateMockResponse(inputMessage, advisoryMode),
+        content: generateMockResponse(messageText, advisoryMode),
         timestamp: new Date(),
         mode: advisoryMode
       };

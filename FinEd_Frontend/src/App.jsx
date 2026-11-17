@@ -20,6 +20,7 @@ import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsPage from "./pages/TermsPage";
 import RequireAuth from "./components/RequireAuth";
 import ViewOnlyGate from "./components/ViewOnlyGate";
+import { LearningPage, VideoPlayerPage } from "./features/learning";
 
 function App() {
   return (
@@ -36,6 +37,9 @@ function App() {
         <Route path="/loan" element={<ViewOnlyGate><LoanSimulator/></ViewOnlyGate>}/>
         <Route path="/chatbot" element={<ViewOnlyGate><FinancialChatbot/></ViewOnlyGate>}/>
         <Route path="/news" element={<RequireAuth><FinNews/></RequireAuth>}/>
+        <Route path="/learning" element={<LearningPage/>}/>
+        <Route path="/learning/watch/:videoId" element={<VideoPlayerPage/>}/>
+        <Route path="/learning/watch" element={<VideoPlayerPage/>}/>
         <Route path="/stock" element={<ViewOnlyGate><StockSimulator/></ViewOnlyGate>}/>
         <Route path="/tracker" element={<ViewOnlyGate><Tracker/></ViewOnlyGate>}/>
         <Route path="/login" element={<AuthPage mode="login"/>}/>

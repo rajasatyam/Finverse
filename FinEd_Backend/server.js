@@ -16,6 +16,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 // In-memory cache for definitions and insights
 const definitionCache = new Map();
 const insightCache = new Map();
+const playlistCache = new Map();
 
 // WealthWise AI System Prompt
 const SYSTEM_PROMPT = `You are FinEd AI, a financial literacy assistant created by the Vionix team.
@@ -54,7 +55,7 @@ app.post("/api/chat", async (req, res) => {
 
     // Configure model with specific settings for financial advice
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-3.1-flash-lite",
+      model: "gemini-1.5-flash",
       generationConfig: {
         maxOutputTokens: 500,
         temperature: 0.7,
@@ -134,7 +135,7 @@ async function generateInsight(title, summary) {
 
   try {
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-3.1-flash-lite",
+      model: "gemini-1.5-flash",
       generationConfig: {
         maxOutputTokens: 150,
         temperature: 0.6,
@@ -167,7 +168,7 @@ Takeaway: [One practical tip]`;
 async function analyzeSentiment(title, summary) {
   try {
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-3.1-flash-lite",
+      model: "gemini-1.5-flash",
       generationConfig: {
         maxOutputTokens: 50,
         temperature: 0.3,
@@ -214,7 +215,7 @@ async function fetchDefinition(term) {
   // Fallback to Gemini for financial terms
   try {
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-3.1-flash-lite",
+      model: "gemini-1.5-flash",
       generationConfig: {
         maxOutputTokens: 100,
         temperature: 0.3,
@@ -548,6 +549,126 @@ app.get("/api/analytics/sentiment", async (req, res) => {
   }
 });
 
+// Helper function to format ISO 8601 duration
+function formatIsoDuration(iso) {
+  if (!iso) return "10:00";
+  const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!match) return iso;
+  const hours = parseInt(match[1] || 0, 10);
+  const minutes = parseInt(match[2] || 0, 10);
+  const seconds = parseInt(match[3] || 0, 10);
+  const paddedSec = seconds < 10 ? `0${seconds}` : `${seconds}`;
+  if (hours > 0) {
+    const paddedMin = minutes < 10 ? `0${minutes}` : `${minutes}`;
+    return `${hours}:${paddedMin}:${paddedSec}`;
+  }
+  return `${minutes}:${paddedSec}`;
+}
+
+// --- Zerodha Varsity Video Learning Playlist Endpoint ---
+app.get("/api/learning/playlist", async (req, res) => {
+  try {
+    const playlistId = req.query.playlistId || "PLX2SHiKfualEyD05J9JsklEq1JFGbG6qJ";
+
+    // Check in-memory cache
+    if (playlistCache.has(playlistId)) {
+      const cached = playlistCache.get(playlistId);
+      if (Date.now() - cached.timestamp < 3600000) {
+        return res.json(cached.data);
+      }
+    }
+
+    const apiKey = process.env.YOUTUBE_API_KEY;
+    if (!apiKey) {
+      return res.status(200).json({
+        message: "No YOUTUBE_API_KEY set on backend, client will use embedded curriculum",
+        playlistId,
+        videos: []
+      });
+    }
+
+    // Call YouTube Data API v3 playlistItems
+    const ytUrl = `https://www.googleapis.com/youtube/v3/playlistItems`;
+    const response = await axios.get(ytUrl, {
+      params: {
+        part: "snippet,contentDetails",
+        maxResults: 50,
+        playlistId: playlistId,
+        key: apiKey
+      },
+      timeout: 5000
+    });
+
+    const items = response.data?.items || [];
+    const videoIds = items.map(it => it.snippet?.resourceId?.videoId).filter(Boolean);
+
+    // Fetch video duration details
+    let durationMap = {};
+    if (videoIds.length > 0) {
+      try {
+        const detailRes = await axios.get(`https://www.googleapis.com/youtube/v3/videos`, {
+          params: {
+            part: "contentDetails,snippet",
+            id: videoIds.join(","),
+            key: apiKey
+          },
+          timeout: 5000
+        });
+        (detailRes.data?.items || []).forEach(d => {
+          durationMap[d.id] = formatIsoDuration(d.contentDetails?.duration);
+        });
+      } catch (err) {
+        console.warn("Could not fetch detailed video durations:", err.message);
+      }
+    }
+
+    const videos = items.map((item, idx) => {
+      const vid = item.snippet?.resourceId?.videoId;
+      return {
+        id: vid || `yt_${idx}`,
+        videoId: vid,
+        sequence: idx + 1,
+        title: item.snippet?.title,
+        duration: durationMap[vid] || "10:00",
+        channelTitle: item.snippet?.channelTitle || "Zerodha Varsity",
+        instructor: "Karthik Rangappa",
+        thumbnail: item.snippet?.thumbnails?.maxres?.url ||
+                   item.snippet?.thumbnails?.high?.url ||
+                   item.snippet?.thumbnails?.medium?.url ||
+                   `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`,
+        description: item.snippet?.description || "",
+        publishedAt: item.snippet?.publishedAt,
+        category: "Stock Market Education"
+      };
+    }).filter(v => v.videoId && v.title !== "Private video" && v.title !== "Deleted video");
+
+    const result = {
+      playlistId,
+      title: "Finverse– Stock Market Education",
+      channelTitle: "Zerodha Varsity",
+      instructor: "Karthik Rangappa",
+      description: "Official Zerodha Varsity video learning modules for stock markets and options trading.",
+      totalVideos: videos.length,
+      category: "Stock Market & Derivatives",
+      source: "youtube_api",
+      videos
+    };
+
+    playlistCache.set(playlistId, {
+      timestamp: Date.now(),
+      data: result
+    });
+
+    res.json(result);
+  } catch (error) {
+    console.error("YouTube Playlist API error:", error.message);
+    res.status(500).json({
+      error: "Failed to fetch playlist from YouTube API",
+      message: error.message
+    });
+  }
+});
+
 // --- Health Check Endpoint ---
 app.get("/api/health", async (req, res) => {
   const healthCheck = {
@@ -559,6 +680,7 @@ app.get("/api/health", async (req, res) => {
       marketaux_integration: !!process.env.MARKETAUX_API_KEY,
       gemini_ai: !!process.env.GEMINI_API_KEY,
       newsapi_fallback: !!process.env.NEWS_API_KEY,
+      youtube_api: !!process.env.YOUTUBE_API_KEY,
       enhanced_insights: true,
       sentiment_analysis: true,
       dynamic_dictionary: true
@@ -661,7 +783,7 @@ app.use((err, req, res, next) => {
 // --- 404 Handler ---
 app.use('*', (req, res) => {
   res.status(404).json({ 
-    message: "Endpoint not found. Available endpoints: /api/chat, /api/health, /api/tips, /api/modes, /api/finnews, /api/dictionary/:term, /api/categories, /api/entities, /api/finnews/search, /api/analytics/sentiment" 
+    message: "Endpoint not found. Available endpoints: /api/chat, /api/health, /api/learning/playlist, /api/tips, /api/modes, /api/finnews, /api/dictionary/:term, /api/categories, /api/entities, /api/finnews/search, /api/analytics/sentiment" 
   });
 });
 
@@ -670,5 +792,5 @@ const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
   console.log(`FinEd API server running on http://localhost:${PORT}`);
   console.log(`Financial literacy backend ready`);
-  console.log(`Endpoints: /api/chat, /api/health, /api/finnews, /api/dictionary/:term, /api/tips, /api/modes, /api/categories, /api/entities`);
+  console.log(`Endpoints: /api/chat, /api/health, /api/learning/playlist, /api/finnews, /api/dictionary/:term, /api/tips, /api/modes, /api/categories, /api/entities`);
 });
